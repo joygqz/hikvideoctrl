@@ -2,7 +2,7 @@
   "name": "hikvideoctrl",
   "type": "module",
   "version": "0.0.1",
-  "description": "海康威视无插件视频播放 SDK 封包，支持 ESM 模块化",
+  "description": "海康威视无插件视频播放 SDK 封包，支持 ESM 模块化。",
   "author": {
     "name": "joygqz",
     "email": "joygqz@gmail.com",
