@@ -82,12 +82,33 @@ export const RecordType = {
   Playback: 'playback',
 } as const
 
+// 协议类型
+export const ProtocolType = {
+  HTTP: 1,
+  HTTPS: 2,
+} as const
+
+// 文件格式
+export const FileFormat = {
+  JPG: 'jpg',
+  JPEG: 'jpeg',
+  PNG: 'png',
+  BMP: 'bmp',
+} as const
+
 // 默认端口配置
 export const DefaultPorts = {
   HTTP: 80,
   HTTPS: 443,
   RTSP: 554,
 }
+
+// 类型别名
+export type WindowTypeValue = typeof WindowType[keyof typeof WindowType]
+export type StreamTypeValue = typeof StreamType[keyof typeof StreamType]
+export type PTZControlTypeValue = typeof PTZControlType[keyof typeof PTZControlType]
+export type ProtocolTypeValue = typeof ProtocolType[keyof typeof ProtocolType]
+export type FileFormatValue = typeof FileFormat[keyof typeof FileFormat]
 
 // IP 模式端口配置
 export const IPModePorts = [0, 7071, 80]

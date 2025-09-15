@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>海康威视视频控制库演示</title>
+    <script id="videonode" src="../dist/codebase/webVideoCtrl.js"></script>
+  </head>
+  <body>
+    <div id="videoContainer" style="width: 200px;height: 200px;"></div>
+    <script type="module">
+      import HikVideoController from '../dist/index.js'
+      const controller = new HikVideoController()
+      async function initAndPlay() {
+      try {
+        // 1. 初始化插件
+        await controller.initPlugin({
+          containerId: 'videoContainer', // 视频容器ID
+          width: '100%',
+          height: '100%',
+          windowType: 1, // 单窗口
+          onError: (windowIndex, errorCode, error) => {
+            console.error('播放错误:', errorCode, error)
+          }
+        })
+      }
+      catch (error) {
+        console.error('操作失败:', error)
+      }
+    }
+
+initAndPlay()
+    </script>
+  </body>
+</html>

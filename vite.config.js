@@ -12,7 +12,13 @@ export default defineConfig({
       name: 'HikVideoCtrl',
       fileName: 'index',
     },
+    rollupOptions: {
+      output: {
+        exports: 'named',
+      },
+    },
   },
+
   plugins: [
     dts({
       include: ['./src/**/*.ts'],

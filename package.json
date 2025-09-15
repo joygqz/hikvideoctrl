@@ -2,7 +2,7 @@
   "name": "hikvideoctrl",
   "type": "module",
   "version": "0.0.3",
-  "description": "海康威视无插件视频播放 SDK 封包，支持 ESM 模块化。",
+  "description": "海康威视无插件视频播放 SDK 封装库，支持 TypeScript/ESM，提供设备管理、视频播放、PTZ控制、录像管理等完整功能。",
   "author": {
     "name": "joygqz",
     "email": "joygqz@gmail.com",
@@ -19,21 +19,28 @@
   },
   "keywords": [
     "hikvision",
-    "video",
-    "player",
+    "海康威视",
+    "video-player",
     "surveillance",
     "camera",
     "websocket",
     "no-plugin",
+    "webrtc",
     "esm",
-    "typescript"
+    "typescript",
+    "ptz-control",
+    "video-record",
+    "playback",
+    "nvr",
+    "ipcamera"
   ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.umd.cjs"
-    }
+    },
+    "./*": "./*"
   },
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",
