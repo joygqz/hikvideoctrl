@@ -59,8 +59,12 @@ yarn add hikvideoctrl
 
 ### 导入基本库
 
-```typescript
-import 'hikvideoctrl/codebase/webVideoCtrl.js'
+访问官网下载最新 WEB 无插件开发包，[下载页面](https://open.hikvision.com/download/5cda567cf47ae80dd41a54b3?type=10&id=6343bb4b03df46c39032d2ef825eb70d)
+
+使用示例：如使用 vite 开发，将 `codebase` 目录及所有文件拷贝至 `public` 目录下，并在 `index.html` 中引入：
+
+```html
+<script src="/codebase/webVideoCtrl.js"></script>
 ```
 
 ### 检查浏览器支持
@@ -100,7 +104,7 @@ async function initAndPlay() {
 
     // 2. 登录设备
     await controller.login({
-      ip: '192.168.1.100',
+      ip: '192.168.1.101',
       port: 8000,
       username: 'admin',
       password: 'password123'
@@ -694,73 +698,3 @@ const controller = new HikVideoController({ debug: true })
 console.log(controller.getWindowStatus(0))
 console.log(controller.getLocalConfig())
 ```
-
-## 📦 兼容性说明
-
-- **支持的海康威视设备**: 网络摄像机、NVR、DVR等支持ISAPI协议的设备
-- **浏览器要求**: Chrome 60+, Firefox 55+, Safari 12+, Edge 79+
-- **操作系统**: Windows 7+, macOS 10.12+, Linux (Ubuntu 16.04+)
-- **依赖**: 需要安装海康威视Web组件或者使用无插件模式
-
-## 📈 版本兼容性
-
-| 版本 | Node.js | TypeScript | 主要特性                |
-| ---- | ------- | ---------- | ----------------------- |
-| 2.x  | 16+     | 4.5+       | ESM模块、TypeScript重构 |
-| 1.x  | 12+     | 3.8+       | CommonJS、基础功能      |
-
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
-### 开发环境
-
-```bash
-# 克隆项目
-git clone https://github.com/yourusername/hikvideoctrl.git
-cd hikvideoctrl
-
-# 安装依赖
-pnpm install
-
-# 开发模式
-pnpm dev
-
-# 类型检查
-pnpm type-check
-
-# 构建
-pnpm build
-
-# 测试
-pnpm test
-```
-
-### 提交规范
-
-- 🐛 **fix**: 修复bug
-- ✨ **feat**: 新功能
-- 📝 **docs**: 文档更新
-- 💄 **style**: 代码格式调整
-- ♻️ **refactor**: 代码重构
-- 🎨 **perf**: 性能优化
-- 🧪 **test**: 测试相关
-
-## 📄 许可证
-
-MIT License - 详见 [LICENSE](LICENSE) 文件
-
-## 🙏 致谢
-
-- 感谢海康威视提供的Web SDK
-- 感谢所有贡献者的支持
-
-## 📞 支持
-
-- 📧 邮箱: [your-email@example.com](mailto:your-email@example.com)
-- 🐛 问题反馈: [GitHub Issues](https://github.com/yourusername/hikvideoctrl/issues)
-- 💬 讨论交流: [GitHub Discussions](https://github.com/yourusername/hikvideoctrl/discussions)
-
----
-
-**注意**: 使用本库需要遵守海康威视的相关协议和法律法规，请合理使用。

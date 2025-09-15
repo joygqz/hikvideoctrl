@@ -4,6 +4,5 @@ export default antfu({
   formatters: true,
   ignores: [
     'example/**',
-    'public/**',
   ],
 })
