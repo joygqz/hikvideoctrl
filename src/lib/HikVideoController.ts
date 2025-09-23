@@ -395,6 +395,7 @@ export class HikVideoController {
       window.WebVideoCtrl.I_StartRealPlay,
       deviceId,
       {
+        iWndIndex: windowIndex,
         iRtspPort: rtspPort,
         iStreamType: streamType,
         iChannelID: channelId,
