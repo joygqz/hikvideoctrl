@@ -3,33 +3,404 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>海康威视视频控制库演示</title>
-    <script id="videonode" src="../dist/codebase/webVideoCtrl.js"></script>
+    <title>海康威视视频控制库 - 示例</title>
+    <script src="./codebase/webVideoCtrl.js"></script>
+    <style>
+      .ptz-table {
+        border-collapse: collapse;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
-    <div id="videoContainer" style="width: 200px;height: 200px;"></div>
-    <script type="module">
-      import HikVideoController from '../dist/index.js'
-      const controller = new HikVideoController()
-      async function initAndPlay() {
-      try {
-        // 1. 初始化插件
-        await controller.initPlugin({
-          containerId: 'videoContainer', // 视频容器ID
-          width: '100%',
-          height: '100%',
-          windowType: 1, // 单窗口
-          onError: (windowIndex, errorCode, error) => {
-            console.error('播放错误:', errorCode, error)
-          }
-        })
-      }
-      catch (error) {
-        console.error('操作失败:', error)
-      }
-    }
+    <h1>海康威视视频控制库示例</h1>
+    
+    <div>
+      <h2>设备登录</h2>
+      <label>设备 IP: <input type="text" id="deviceIP" value="192.168.1.100"></label><br>
+      <label>端口: <input type="number" id="devicePort" value="80"></label><br>
+      <label>用户名: <input type="text" id="username" value="admin"></label><br>
+      <label>密码: <input type="password" id="password"></label><br>
+      <button onclick="connectDevice()" id="connectBtn">连接设备</button>
+      <button onclick="disconnectDevice()" id="disconnectBtn" disabled>断开连接</button>
+    </div>
+    
+    <hr>
+    
+    <div>
+      <h2>视频播放窗口</h2>
+      <div id="videoContainer" style="width: 800px; height: 600px; background: #000; border: 1px solid #ccc;"></div>
+    </div>
+    
+    <hr>
+    
+    <div>
+      <h2>视频控制</h2>
+      <label>通道号: <input type="number" id="channelId" value="1" min="1" max="64"></label>
+      <label>码流类型: 
+        <select id="streamType">
+          <option value="1">主码流</option>
+          <option value="2">子码流</option>
+        </select>
+      </label><br>
+      <button onclick="startPreview()" id="previewBtn" disabled>开始预览</button>
+      <button onclick="stopPreview()" id="stopBtn" disabled>停止预览</button>
+    </div>
+    
+    <hr>
+    
+    <div>
+      <h2>PTZ 云台控制</h2>
+      <table class="ptz-table">
+        <tr>
+          <td><button onclick="ptzControl('up-left')">↖</button></td>
+          <td><button onclick="ptzControl('up')">↑</button></td>
+          <td><button onclick="ptzControl('up-right')">↗</button></td>
+        </tr>
+        <tr>
+          <td><button onclick="ptzControl('left')">←</button></td>
+          <td><button onclick="ptzControl('stop')">停止</button></td>
+          <td><button onclick="ptzControl('right')">→</button></td>
+        </tr>
+        <tr>
+          <td><button onclick="ptzControl('down-left')">↙</button></td>
+          <td><button onclick="ptzControl('down')">↓</button></td>
+          <td><button onclick="ptzControl('down-right')">↘</button></td>
+        </tr>
+      </table>
+      <button onclick="ptzControl('zoom-in')">放大</button>
+      <button onclick="ptzControl('zoom-out')">缩小</button>
+    </div>
+    
+    <hr>
+    
+    <div>
+      <h2>录像与抓拍</h2>
+      <button onclick="captureImage()">抓拍图片</button>
+      <button onclick="startRecord()">开始录像</button>
+      <button onclick="stopRecord()">停止录像</button>
+    </div>
+    
+    <hr>
+    
+    <div>
+      <h2>预置位</h2>
+      <label>预置位号 (1-255): <input type="number" id="presetNumber" value="1" min="1" max="255"></label><br>
+      <button onclick="setPreset()">设置预置位</button>
+      <button onclick="gotoPreset()">调用预置位</button>
+    </div>
+    
+    <hr>
+    
+    <div>
+      <h2>操作日志</h2>
+      <textarea id="logOutput" readonly style="width: 800px; height: 200px;"></textarea><br>
+      <button onclick="clearLog()">清空日志</button>
+    </div>
 
-initAndPlay()
+    <script type="module">
+      import HikVideoController, { 
+        StreamType, 
+        PTZControlType, 
+        generateDeviceIdentify 
+      } from '../dist/index.js'
+
+      // 全局变量
+      let controller = null
+      let currentDeviceId = null
+      let isConnected = false
+      let isPlaying = false
+
+      // 初始化控制器
+      function initController() {
+        controller = new HikVideoController()
+        
+        // 绑定事件监听器
+        controller.on('loginSuccess', (data) => {
+          log('设备登录成功')
+          updateConnectionStatus(true)
+          enableControls(true)
+        })
+        
+        controller.on('logoutSuccess', () => {
+          log('设备已登出')
+          updateConnectionStatus(false)
+          updatePlayStatus(false)
+          enableControls(false)
+        })
+        
+        controller.on('previewStart', (data) => {
+          log(`开始预览 - 通道${data.channelId}`)
+          updatePlayStatus(true)
+        })
+        
+        controller.on('previewStop', () => {
+          log('停止预览')
+          updatePlayStatus(false)
+        })
+        
+        controller.on('recordStart', (data) => {
+          log(`开始录像: ${data.fileName}`)
+        })
+        
+        controller.on('recordStop', () => {
+          log('停止录像')
+        })
+        
+        controller.on('error', (error) => {
+          log(`错误: ${error.message || JSON.stringify(error)}`)
+        })
+        
+        log('控制器初始化完成')
+      }
+
+      // 连接设备
+      window.connectDevice = async function() {
+        const ip = document.getElementById('deviceIP').value.trim()
+        const port = parseInt(document.getElementById('devicePort').value)
+        const username = document.getElementById('username').value.trim()
+        const password = document.getElementById('password').value.trim()
+        
+        if (!ip || !port || !username || !password) {
+          log('请填写完整的设备信息')
+          return
+        }
+        
+        try {
+          log('正在初始化插件...')
+          
+          await controller.initPlugin({
+            containerId: 'videoContainer',
+            width: '100%',
+            height: '100%',
+            windowType: 1,
+            onError: (windowIndex, errorCode, error) => {
+              log(`播放错误 [${errorCode}]: ${error}`)
+            }
+          })
+          
+          log('正在连接设备...')
+          currentDeviceId = generateDeviceIdentify(ip, port)
+          
+          await controller.login({
+            ip,
+            port,
+            username,
+            password
+          })
+          
+        } catch (error) {
+          log(`连接失败: ${error.message}`)
+        }
+      }
+
+      // 断开设备
+      window.disconnectDevice = async function() {
+        try {
+          if (isPlaying) {
+            await controller.stopPreview()
+          }
+          await controller.logout(currentDeviceId)
+        } catch (error) {
+          log(`断开连接失败: ${error.message}`)
+        }
+      }
+
+      // 开始预览
+      window.startPreview = async function() {
+        if (!currentDeviceId || !isConnected) {
+          log('请先连接设备')
+          return
+        }
+        
+        try {
+          const channelId = parseInt(document.getElementById('channelId').value)
+          const streamType = parseInt(document.getElementById('streamType').value)
+          
+          log(`正在加载视频流 - 通道${channelId}...`)
+          
+          await controller.startPreview({
+            deviceId: currentDeviceId,
+            channelId,
+            streamType,
+            windowIndex: 0
+          })
+          
+        } catch (error) {
+          log(`开始预览失败: ${error.message}`)
+        }
+      }
+
+      // 停止预览
+      window.stopPreview = async function() {
+        try {
+          await controller.stopPreview(0)
+        } catch (error) {
+          log(`停止预览失败: ${error.message}`)
+        }
+      }
+
+      // PTZ控制
+      window.ptzControl = async function(direction) {
+        if (!currentDeviceId || !isConnected) {
+          log('请先连接设备')
+          return
+        }
+        
+        const commandMap = {
+          'up': PTZControlType.Up,
+          'down': PTZControlType.Down,
+          'left': PTZControlType.Left,
+          'right': PTZControlType.Right,
+          'up-left': PTZControlType.UpLeft,
+          'up-right': PTZControlType.UpRight,
+          'down-left': PTZControlType.DownLeft,
+          'down-right': PTZControlType.DownRight,
+          'zoom-in': PTZControlType.ZoomIn,
+          'zoom-out': PTZControlType.ZoomOut,
+          'stop': 0
+        }
+        
+        try {
+          const command = commandMap[direction]
+          if (command !== undefined) {
+            const isStop = direction === 'stop'
+            await controller.ptzControl({
+              ptzIndex: command,
+              speed: 4
+            }, isStop)
+            log(`PTZ控制: ${direction}`)
+          }
+        } catch (error) {
+          log(`PTZ控制失败: ${error.message}`)
+        }
+      }
+
+      // 抓拍图片
+      window.captureImage = async function() {
+        if (!isPlaying) {
+          log('请先开始预览')
+          return
+        }
+        
+        try {
+          await controller.capturePicture({
+            windowIndex: 0,
+            fileName: `capture_${Date.now()}.jpg`
+          })
+          log('图片抓拍成功')
+        } catch (error) {
+          log(`图片抓拍失败: ${error.message}`)
+        }
+      }
+
+      // 开始录像
+      window.startRecord = async function() {
+        if (!isPlaying) {
+          log('请先开始预览')
+          return
+        }
+        
+        try {
+          await controller.startRecord({
+            fileName: `record_${Date.now()}.mp4`
+          })
+        } catch (error) {
+          log(`开始录像失败: ${error.message}`)
+        }
+      }
+
+      // 停止录像
+      window.stopRecord = async function() {
+        try {
+          await controller.stopRecord()
+        } catch (error) {
+          log(`停止录像失败: ${error.message}`)
+        }
+      }
+
+      // 设置预置位
+      window.setPreset = async function() {
+        if (!isConnected) {
+          log('请先连接设备')
+          return
+        }
+        
+        const presetNumber = parseInt(document.getElementById('presetNumber').value)
+        
+        try {
+          await controller.setPreset(presetNumber)
+          log(`预置位 ${presetNumber} 设置成功`)
+        } catch (error) {
+          log(`设置预置位失败: ${error.message}`)
+        }
+      }
+
+      // 调用预置位
+      window.gotoPreset = async function() {
+        if (!isConnected) {
+          log('请先连接设备')
+          return
+        }
+        
+        const presetNumber = parseInt(document.getElementById('presetNumber').value)
+        
+        try {
+          await controller.goPreset(presetNumber)
+          log(`已调用预置位 ${presetNumber}`)
+        } catch (error) {
+          log(`调用预置位失败: ${error.message}`)
+        }
+      }
+
+      // 日志函数
+      function log(message) {
+        const logOutput = document.getElementById('logOutput')
+        const timestamp = new Date().toLocaleTimeString()
+        const logEntry = `[${timestamp}] ${message}\n`
+        logOutput.value += logEntry
+        logOutput.scrollTop = logOutput.scrollHeight
+        console.log(message)
+      }
+
+      // 清空日志
+      window.clearLog = function() {
+        document.getElementById('logOutput').value = ''
+        log('日志已清空')
+      }
+
+      // 更新连接状态
+      function updateConnectionStatus(connected) {
+        isConnected = connected
+        document.getElementById('connectBtn').disabled = connected
+        document.getElementById('disconnectBtn').disabled = !connected
+      }
+
+      // 更新播放状态
+      function updatePlayStatus(playing) {
+        isPlaying = playing
+        document.getElementById('previewBtn').disabled = !isConnected || playing
+        document.getElementById('stopBtn').disabled = !playing
+      }
+
+      // 启用/禁用控制按钮
+      function enableControls(enabled) {
+        document.getElementById('previewBtn').disabled = !enabled
+      }
+
+      // 页面加载完成后初始化
+      document.addEventListener('DOMContentLoaded', function() {
+        initController()
+        log('页面加载完成，准备就绪')
+      })
+
+      // 页面卸载时清理资源
+      window.addEventListener('beforeunload', function() {
+        if (controller && currentDeviceId && isConnected) {
+          controller.logout(currentDeviceId)
+        }
+      })
     </script>
   </body>
 </html>

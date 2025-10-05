@@ -212,16 +212,16 @@ await controller.startPlayback({
 
 ```typescript
 // 暂停回放
-await controller.pausePlayback(0)
+await controller.pausePlayback()
 
 // 恢复回放
-await controller.resumePlayback(0)
+await controller.resumePlayback()
 
 // 快进
-await controller.playFast(0)
+await controller.playFast()
 
 // 慢放
-await controller.playSlow(0)
+await controller.playSlow()
 ```
 
 ### 录像管理
@@ -267,13 +267,12 @@ await controller.startDownloadRecordByTime(
 ```typescript
 // 开始录像
 await controller.startRecord({
-  windowIndex: 0,
   fileName: 'local_record',
   useDateDir: true
 })
 
 // 停止录像
-await controller.stopRecord(0)
+await controller.stopRecord()
 ```
 
 ### PTZ 控制
@@ -285,14 +284,12 @@ import { PTZControlType } from 'hikvideoctrl'
 
 // 向上移动
 await controller.ptzControl({
-  windowIndex: 0,
   ptzIndex: PTZControlType.Up,
   speed: 4
 })
 
 // 停止移动
 await controller.ptzControl({
-  windowIndex: 0,
   ptzIndex: PTZControlType.Up,
   speed: 4
 }, true) // 第二个参数为true表示停止
@@ -318,10 +315,10 @@ await controller.ptzControl({
 
 ```typescript
 // 设置预置点
-await controller.setPreset(1, 0) // 预置点1，窗口0
+await controller.setPreset(1) // 预置点1
 
 // 调用预置点
-await controller.goPreset(1, 0)
+await controller.goPreset(1)
 ```
 
 ### 图像功能
@@ -332,8 +329,8 @@ await controller.goPreset(1, 0)
 await controller.capturePicture({
   windowIndex: 0,
   fileName: 'snapshot',
-  format: 'jpg', // jpg, jpeg, bmp
-  callback: (imageData) => {
+  format: 'jpg', // jpg, jpeg, png, bmp
+  callback: (imageData: Uint8Array) => {
     console.log('抓图数据:', imageData)
   }
 })
@@ -343,10 +340,10 @@ await controller.capturePicture({
 
 ```typescript
 // 启用电子放大
-await controller.enableEZoom(0)
+await controller.enableEZoom()
 
 // 禁用电子放大
-await controller.disableEZoom(0)
+await controller.disableEZoom()
 ```
 
 #### 3D定位
@@ -358,7 +355,7 @@ await controller.enable3DZoom(0, (zoomInfo) => {
 })
 
 // 禁用3D定位
-controller.disable3DZoom(0)
+controller.disable3DZoom()
 ```
 
 ### 音频控制
@@ -367,13 +364,13 @@ controller.disable3DZoom(0)
 
 ```typescript
 // 打开音频
-await controller.openSound(0)
+await controller.openSound()
 
 // 关闭音频
-await controller.closeSound(0)
+await controller.closeSound()
 
 // 设置音量 (0-100)
-await controller.setVolume(50, 0)
+await controller.setVolume(50)
 ```
 
 ### 窗口管理
@@ -541,14 +538,23 @@ console.log('窗口状态:', windowStatus)
 
 ```typescript
 import {
+  createResponseHandler,
+  delay,
+  encodeString,
   formatDate,
   generateDeviceIdentify,
   generateUniqueFileName,
   getCurrentTimeString,
   getTodayTimeRange,
+  getWindowSize,
   isValidIP,
   isValidPort,
-  parseDeviceIdentify
+  isValidTimeRange,
+  loadXML,
+  parseDeviceIdentify,
+  promisify,
+  toXMLString,
+  uint8ArrayToBase64
 } from 'hikvideoctrl'
 
 // 格式化时间
@@ -572,6 +578,36 @@ const isValidPortNumber = isValidPort(8000)
 
 // 生成唯一文件名
 const fileName = generateUniqueFileName('capture', 'jpg')
+
+// 验证时间范围
+const isValidRange = isValidTimeRange('2024-01-01 00:00:00', '2024-01-01 23:59:59')
+
+// 延迟执行
+await delay(1000)
+
+// 获取窗口尺寸
+const { width, height } = getWindowSize()
+
+// 将Uint8Array转换为Base64
+const base64 = await uint8ArrayToBase64(imageData)
+
+// 加载XML
+const xmlDoc = loadXML(xmlString)
+
+// 转换为XML字符串
+const xmlStr = toXMLString(xmlDoc)
+
+// HTML实体编码
+const encoded = encodeString('<div>content</div>')
+
+// Promise化函数
+const result = await promisify(someFunction, arg1, arg2)
+
+// 创建响应处理器
+const handler = createResponseHandler(
+  data => console.log('成功', data),
+  (status, xmlDoc, error) => console.error('失败', status, error)
+)
 ```
 
 ## 🔧 配置选项
