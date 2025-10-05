@@ -5,8 +5,6 @@
 
 🎥 海康威视无插件视频播放 SDK 封装，支持 ESM 模块化，提供完整的 TypeScript API 和现代化开发体验。
 
-📺 **[在线演示 Demo](https://joygqz.github.io/hikvideoctrl/)**
-
 ## ✨ 特性
 
 - 🚀 **无插件播放** - 基于 WebSocket 和 Canvas 技术，无需安装插件

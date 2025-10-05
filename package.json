@@ -9,7 +9,7 @@
     "url": "https://github.com/joygqz"
   },
   "license": "MIT",
-  "homepage": "https://joygqz.github.io/hikvideoctrl/",
+  "homepage": "https://github.com/joygqz/hikvideoctrl#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/joygqz/hikvideoctrl.git"
@@ -18,8 +18,13 @@
     "url": "https://github.com/joygqz/hikvideoctrl/issues"
   },
   "keywords": [
+    "海康",
+    "监控",
+    "hik",
     "hikvision",
-    "海康威视",
+    "sdk",
+    "video",
+    "player",
     "video-player",
     "surveillance",
     "camera",
@@ -32,7 +37,8 @@
     "video-record",
     "playback",
     "nvr",
-    "ipcamera"
+    "ipcamera",
+    "hikvideo"
   ],
   "exports": {
     ".": {
