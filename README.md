@@ -5,6 +5,8 @@
 
 🎥 海康威视无插件视频播放 SDK 封装，支持 ESM 模块化，提供完整的 TypeScript API 和现代化开发体验。
 
+📺 **[在线演示 Demo](https://joygqz.github.io/hikvideoctrl/)**
+
 ## ✨ 特性
 
 - 🚀 **无插件播放** - 基于 WebSocket 和 Canvas 技术，无需安装插件
@@ -727,10 +729,49 @@ catch (error) {
 ## 🔍 开发调试
 
 ```typescript
-// 开启调试模式
-const controller = new HikVideoController({ debug: true })
-
 // 查看内部状态
 console.log(controller.getWindowStatus(0))
 console.log(controller.getLocalConfig())
 ```
+
+## 📝 开发指南
+
+### 本地开发
+
+```bash
+# 克隆仓库
+git clone https://github.com/joygqz/hikvideoctrl.git
+cd hikvideoctrl
+
+# 安装依赖
+pnpm install
+
+# 构建项目
+pnpm build
+
+# 运行示例
+# 在 example 目录中启动本地服务器
+npx serve example
+```
+
+### 贡献代码
+
+欢迎提交 Pull Request 或 Issue！
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 📄 许可证
+
+[MIT License](LICENSE) © 2024 joygqz
+
+## 🔗 相关链接
+
+- [在线演示](https://joygqz.github.io/hikvideoctrl/)
+- [GitHub 仓库](https://github.com/joygqz/hikvideoctrl)
+- [NPM 包](https://www.npmjs.com/package/hikvideoctrl)
+- [海康威视开放平台](https://open.hikvision.com/)
+- [GitHub Pages 部署说明](GITHUB_PAGES.md)
