@@ -1,7 +1,7 @@
 {
   "name": "hikvideoctrl",
   "type": "module",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "海康威视无插件视频播放 SDK 封装库，支持 TypeScript/ESM，提供设备管理、视频播放、PTZ控制、录像管理等完整功能。",
   "author": {
     "name": "joygqz",
