@@ -767,11 +767,3 @@ npx serve example
 ## 📄 许可证
 
 [MIT License](LICENSE) © 2024 joygqz
-
-## 🔗 相关链接
-
-- [在线演示](https://joygqz.github.io/hikvideoctrl/)
-- [GitHub 仓库](https://github.com/joygqz/hikvideoctrl)
-- [NPM 包](https://www.npmjs.com/package/hikvideoctrl)
-- [海康威视开放平台](https://open.hikvision.com/)
-- [GitHub Pages 部署说明](GITHUB_PAGES.md)
