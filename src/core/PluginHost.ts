@@ -5,7 +5,6 @@ import { HikSDKError } from '../errors'
 
 /**
  * 解析容器 ID
- *
  * @param container 容器元素或 ID
  * @returns 容器元素 ID（若传入 DOM 元素且缺少 ID，会自动生成）
  * @throws {HikSDKError} 当容器无效时抛出错误
@@ -26,7 +25,6 @@ function resolveContainerId(container: string | HTMLElement): string {
 
 /**
  * 转换为 CSS 尺寸字符串
- *
  * @param value 尺寸值（数字或字符串）
  * @returns CSS 尺寸字符串
  */
@@ -38,7 +36,6 @@ function toCssSize(value?: string | number): string {
 
 /**
  * 从 XML 文档中解析窗口索引
- *
  * @param xmlDoc XML 文档
  * @returns 窗口索引
  */
@@ -48,10 +45,7 @@ function parseWindowIndex(xmlDoc: Document | null | undefined): number {
 }
 
 /**
- * 插件宿主类，管理海康视频插件的生命周期
- *
- * 负责插件的初始化、窗口管理等核心功能
- *
+ * 插件宿主类，管理海康视频插件的生命周期，负责插件的初始化、窗口管理等核心功能
  * @example
  * ```typescript
  * const host = new PluginHost(bridge, eventBus)
@@ -91,7 +85,6 @@ export class PluginHost {
 
   /**
    * 构造函数
-   *
    * @param bridge SDK 桥接实例
    * @param events 事件总线实例
    */
