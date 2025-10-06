@@ -1,14 +1,12 @@
 # HikVideoCtrl
 
-[![NPM Version](https://img.shields.io/npm/v/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl) [![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl) [![License](https://img.shields.io/npm/l/hikvideoctrl)](https://github.com/joygqz/hikvideoctrl/blob/main/LICENSE)
+[![NPM Version](https://img.shields.io/npm/v/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl) [![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl)
 
-> 🎥 海康威视无插件视频播放 SDK 的现代化 TypeScript 封装库
-
-简洁、类型安全、开箱即用的海康威视 Web SDK 封装，让你 3 分钟接入海康监控视频。
+海康威视无插件视频播放 SDK 封装库，支持 TypeScript/ESM，提供设备管理、视频播放、PTZ 控制、录像管理等完整功能。
 
 ## ✨ 特性
 
-- 🎯 **开箱即用** - 3 行代码即可开始预览
+- 🎯 **开箱即用** - 几行代码即可开始预览
 - 📦 **TypeScript 支持** - 完整的类型定义和智能提示
 - 🚀 **现代化 API** - Promise 风格，符合直觉
 - 🎨 **ESM/CJS 双支持** - 适配各种构建工具

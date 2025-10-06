@@ -1,6 +1,3 @@
-/**
- * 时间格式化
- */
 export function formatDate(date: Date, format: string = 'yyyy-MM-dd HH:mm:ss'): string {
   const tokens: Record<string, string> = {
     yyyy: date.getFullYear().toString(),

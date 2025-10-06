@@ -1,7 +1,3 @@
-/**
- * 海康威视无插件视频播放 SDK
- */
-
 import { createHikVideoClient, HikVideoClient } from './HikVideoClient'
 
 export { createHikVideoClient, HikVideoClient }
