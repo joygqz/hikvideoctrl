@@ -118,7 +118,7 @@ const client = createHikVideoClient()
 
 ### 🔧 初始化与配置
 
-#### `initialize(options)`
+#### `initialize(options: PluginInitOptions): Promise<void>`
 
 初始化视频插件（必须首先调用）。
 
@@ -162,7 +162,7 @@ await client.initialize({
 
 ### 📡 设备管理
 
-#### `connectDevice(credentials)`
+#### `connectDevice(credentials: DeviceCredentials): Promise<DeviceSession>`
 
 连接海康设备。
 
@@ -191,7 +191,7 @@ interface DeviceSession {
 }
 ```
 
-#### `disconnectDevice(deviceId)`
+#### `disconnectDevice(deviceId: string): Promise<void>`
 
 断开设备连接。
 
@@ -199,7 +199,7 @@ interface DeviceSession {
 await client.disconnectDevice(device.id)
 ```
 
-#### `listDevices()`
+#### `listDevices(): DeviceSession[]`
 
 获取所有已连接设备列表。
 
@@ -210,7 +210,9 @@ devices.forEach((dev) => {
 })
 ```
 
-#### `getDevice(deviceId)`
+})
+
+#### `getDevice(deviceId: string): DeviceSession | undefined`
 
 获取指定设备信息。
 
@@ -221,7 +223,7 @@ if (device) {
 }
 ```
 
-#### `getDeviceInfo(deviceId)`
+#### `getDeviceInfo(deviceId: string): Promise<Document>`
 
 获取设备详细信息（XML 格式）。
 
@@ -233,7 +235,7 @@ console.log('设备名称:', deviceName)
 console.log('设备型号:', model)
 ```
 
-#### `getDevicePort(deviceId)`
+#### `getDevicePort(deviceId: string): DevicePort`
 
 获取设备端口信息。
 
@@ -252,7 +254,7 @@ interface DevicePort {
 }
 ```
 
-#### `getChannels(deviceId)`
+#### `getChannels(deviceId: string): Promise<ChannelInfo[]>`
 
 获取设备所有通道信息。
 
@@ -275,7 +277,7 @@ interface ChannelInfo {
 }
 ```
 
-#### `getAudioInfo(deviceId)`
+#### `getAudioInfo(deviceId: string): Promise<Document>`
 
 获取音频信息。
 
@@ -283,7 +285,7 @@ interface ChannelInfo {
 const audioDoc = await client.getAudioInfo(device.id)
 ```
 
-#### `restartDevice(deviceId)`
+#### `restartDevice(deviceId: string): Promise<void>`
 
 重启设备。
 
@@ -291,7 +293,7 @@ const audioDoc = await client.getAudioInfo(device.id)
 await client.restartDevice(device.id)
 ```
 
-#### `reconnectDevice(deviceId)`
+#### `reconnectDevice(deviceId: string): Promise<void>`
 
 重新连接设备。
 
@@ -299,7 +301,7 @@ await client.restartDevice(device.id)
 await client.reconnectDevice(device.id)
 ```
 
-#### `exportDeviceConfig(deviceId, password)`
+#### `exportDeviceConfig(deviceId: string, password: string): Promise<void>`
 
 导出设备配置。
 
@@ -307,7 +309,7 @@ await client.reconnectDevice(device.id)
 await client.exportDeviceConfig(device.id, 'config_password')
 ```
 
-#### `importDeviceConfig(deviceId, fileName, password, file)`
+#### `importDeviceConfig(deviceId: string, fileName: string, password: string, file: File): Promise<void>`
 
 导入设备配置。
 
@@ -316,7 +318,7 @@ const file = document.querySelector('input[type="file"]').files[0]
 await client.importDeviceConfig(device.id, 'config.bin', 'config_password', file)
 ```
 
-#### `restoreDeviceDefault(deviceId, mode)`
+#### `restoreDeviceDefault(deviceId: string, mode: 'basic' | 'full'): Promise<void>`
 
 恢复设备出厂设置。
 
@@ -328,7 +330,7 @@ await client.restoreDeviceDefault(device.id, 'basic')
 await client.restoreDeviceDefault(device.id, 'full')
 ```
 
-#### `startUpgrade(deviceId, fileName, file)`
+#### `startUpgrade(deviceId: string, fileName: string, file: File): Promise<void>`
 
 设备固件升级。
 
@@ -337,7 +339,7 @@ const file = document.querySelector('input[type="file"]').files[0]
 await client.startUpgrade(device.id, 'firmware.bin', file)
 ```
 
-#### `getUpgradeProgress(deviceId)`
+#### `getUpgradeProgress(deviceId: string): Promise<{ percent: number, upgrading: boolean }>`
 
 获取升级进度。
 
@@ -349,7 +351,7 @@ console.log('升级中:', progress.upgrading)
 
 ### 📹 视频预览
 
-#### `startPreview(deviceId, options)`
+#### `startPreview(deviceId: string, options: PreviewOptions): Promise<void>`
 
 开始实时预览。
 
@@ -383,7 +385,7 @@ await client.startPreview(device.id, {
 | `onSuccess`   | `function` | ❌   | 成功回调                   |
 | `onError`     | `function` | ❌   | 失败回调                   |
 
-#### `stopPreview(windowIndex?)`
+#### `stopPreview(windowIndex?: number): Promise<void>`
 
 停止预览。
 
@@ -395,7 +397,7 @@ await client.stopPreview(0)
 await client.stopPreview()
 ```
 
-#### `stopAllPreview()`
+#### `stopAllPreview(): Promise<void>`
 
 停止所有预览。
 
@@ -405,7 +407,7 @@ await client.stopAllPreview()
 
 ### ⏯️ 视频回放
 
-#### `startPlayback(deviceId, options)`
+#### `startPlayback(deviceId: string, options: PlaybackOptions): Promise<void>`
 
 开始录像回放。
 
@@ -426,7 +428,7 @@ await client.startPlayback(device.id, {
 })
 ```
 
-#### `stopPlayback(windowIndex?)`
+#### `stopPlayback(windowIndex?: number): Promise<void>`
 
 停止回放。
 
@@ -434,7 +436,7 @@ await client.startPlayback(device.id, {
 await client.stopPlayback(0)
 ```
 
-#### `pausePlayback(windowIndex?)`
+#### `pausePlayback(windowIndex?: number): Promise<void>`
 
 暂停回放。
 
@@ -442,7 +444,7 @@ await client.stopPlayback(0)
 await client.pausePlayback()
 ```
 
-#### `resumePlayback(windowIndex?)`
+#### `resumePlayback(windowIndex?: number): Promise<void>`
 
 恢复回放。
 
@@ -450,7 +452,7 @@ await client.pausePlayback()
 await client.resumePlayback()
 ```
 
-#### `playFast(windowIndex?)`
+#### `playFast(windowIndex?: number): Promise<void>`
 
 快进播放。
 
@@ -458,7 +460,7 @@ await client.resumePlayback()
 await client.playFast()
 ```
 
-#### `playSlow(windowIndex?)`
+#### `playSlow(windowIndex?: number): Promise<void>`
 
 慢放播放。
 
@@ -468,7 +470,7 @@ await client.playSlow()
 
 ### 🔊 音频控制
 
-#### `openSound(windowIndex?)`
+#### `openSound(windowIndex?: number): Promise<void>`
 
 打开声音。
 
@@ -476,7 +478,7 @@ await client.playSlow()
 await client.openSound(0)
 ```
 
-#### `closeSound(windowIndex?)`
+#### `closeSound(windowIndex?: number): Promise<void>`
 
 关闭声音。
 
@@ -484,7 +486,7 @@ await client.openSound(0)
 await client.closeSound(0)
 ```
 
-#### `setVolume(volume, windowIndex?)`
+#### `setVolume(volume: number, windowIndex?: number): Promise<void>`
 
 设置音量。
 
@@ -495,7 +497,7 @@ await client.setVolume(50, 0)
 
 ### 🎮 PTZ 云台控制
 
-#### `ptzControl(options, stop?)`
+#### `ptzControl(options: PTZCommandOptions, stop?: boolean): Promise<void>`
 
 PTZ 云台控制。
 
@@ -535,7 +537,7 @@ PTZControlType.IrisIn // 光圈+
 PTZControlType.IrisOut // 光圈-
 ```
 
-#### `ptzStart(options)`
+#### `ptzStart(options: PTZCommandOptions): Promise<void>`
 
 开始 PTZ 控制。
 
@@ -546,7 +548,7 @@ await client.ptzStart({
 })
 ```
 
-#### `ptzStop(action, windowIndex?)`
+#### `ptzStop(action: number, windowIndex?: number): Promise<void>`
 
 停止 PTZ 控制。
 
@@ -554,7 +556,7 @@ await client.ptzStart({
 await client.ptzStop(PTZControlType.Right, 0)
 ```
 
-#### `setPreset(preset, windowIndex?)`
+#### `setPreset(preset: number, windowIndex?: number): Promise<void>`
 
 设置预置点。
 
@@ -563,7 +565,7 @@ await client.ptzStop(PTZControlType.Right, 0)
 await client.setPreset(1, 0)
 ```
 
-#### `goPreset(preset, windowIndex?)`
+#### `goPreset(preset: number, windowIndex?: number): Promise<void>`
 
 调用预置点。
 
@@ -574,7 +576,7 @@ await client.goPreset(1, 0)
 
 ### 📼 录像与抓拍
 
-#### `searchRecords(deviceId, options)`
+#### `searchRecords(deviceId: string, options: RecordSearchOptions): Promise<Document>`
 
 搜索录像文件。
 
@@ -597,7 +599,7 @@ files.forEach((file) => {
 })
 ```
 
-#### `startRecording(options)`
+#### `startRecording(options: RecordingOptions): Promise<string>`
 
 开始本地录像。
 
@@ -611,7 +613,7 @@ const fileName = await client.startRecording({
 console.log('录像文件:', fileName)
 ```
 
-#### `stopRecording(windowIndex?)`
+#### `stopRecording(windowIndex?: number): Promise<void>`
 
 停止录像。
 
@@ -619,7 +621,7 @@ console.log('录像文件:', fileName)
 await client.stopRecording(0)
 ```
 
-#### `capture(options?)`
+#### `capture(options?: CaptureOptions): Promise<string>`
 
 抓拍截图。
 
@@ -638,7 +640,7 @@ const fileName = await client.capture({
 console.log('截图文件:', fileName)
 ```
 
-#### `downloadRecord(deviceId, playbackUri, fileName, options?)`
+#### `downloadRecord(deviceId: string, playbackUri: string, fileName: string, options?: DownloadOptions): Promise<number>`
 
 下载录像文件。
 
@@ -655,7 +657,7 @@ const handleId = await client.downloadRecord(
 console.log('下载句柄:', handleId)
 ```
 
-#### `downloadRecordByTime(deviceId, playbackUri, options)`
+#### `downloadRecordByTime(deviceId: string, playbackUri: string, options: DownloadByTimeOptions): Promise<number>`
 
 按时间段下载录像。
 
@@ -674,7 +676,7 @@ const handleId = await client.downloadRecordByTime(
 
 ### 🖼️ 画面控制
 
-#### `toggleFullScreen(enable?)`
+#### `toggleFullScreen(enable?: boolean): void`
 
 切换全屏模式。
 
@@ -686,7 +688,7 @@ client.toggleFullScreen(true)
 client.toggleFullScreen(false)
 ```
 
-#### `changeWindowLayout(layout)`
+#### `changeWindowLayout(layout: number): void`
 
 切换窗口布局。
 
@@ -703,7 +705,7 @@ client.changeWindowLayout(WindowType.Four)
 // WindowType.Sixteen (16)   - 十六窗口
 ```
 
-#### `enableEZoom(windowIndex?)`
+#### `enableEZoom(windowIndex?: number): Promise<void>`
 
 启用电子放大。
 
@@ -711,7 +713,7 @@ client.changeWindowLayout(WindowType.Four)
 await client.enableEZoom(0)
 ```
 
-#### `disableEZoom(windowIndex?)`
+#### `disableEZoom(windowIndex?: number): Promise<void>`
 
 禁用电子放大。
 
@@ -719,7 +721,7 @@ await client.enableEZoom(0)
 await client.disableEZoom(0)
 ```
 
-#### `enable3DZoom(windowIndex?, callback?)`
+#### `enable3DZoom(windowIndex?: number, callback?: (info: any) => void): Promise<void>`
 
 启用 3D 定位。
 
@@ -729,7 +731,7 @@ await client.enable3DZoom(0, (info) => {
 })
 ```
 
-#### `disable3DZoom(windowIndex?)`
+#### `disable3DZoom(windowIndex?: number): boolean`
 
 禁用 3D 定位。
 
@@ -737,7 +739,7 @@ await client.enable3DZoom(0, (info) => {
 client.disable3DZoom(0)
 ```
 
-#### `getWindowStatus(windowIndex?)`
+#### `getWindowStatus(windowIndex?: number): any`
 
 获取窗口状态。
 
@@ -746,7 +748,7 @@ const status = client.getWindowStatus(0)
 console.log('窗口状态:', status)
 ```
 
-#### `getWindowSet()`
+#### `getWindowSet(): any[]`
 
 获取所有窗口信息。
 
@@ -759,7 +761,7 @@ windows.forEach((wnd) => {
 
 ### ⚙️ 高级配置
 
-#### `setSecretKey(secretKey, windowIndex?)`
+#### `setSecretKey(secretKey: string, windowIndex?: number): Promise<void>`
 
 设置视频加密密钥。
 
@@ -767,7 +769,7 @@ windows.forEach((wnd) => {
 await client.setSecretKey('your-secret-key', 0)
 ```
 
-#### `getOSDTime(windowIndex?)`
+#### `getOSDTime(windowIndex?: number): Promise<string>`
 
 获取视频 OSD 时间。
 
@@ -776,7 +778,7 @@ const osdTime = await client.getOSDTime(0)
 console.log('OSD 时间:', osdTime)
 ```
 
-#### `getLocalConfig()`
+#### `getLocalConfig(): any`
 
 获取本地配置。
 
@@ -785,7 +787,7 @@ const config = client.getLocalConfig()
 console.log('本地配置:', config)
 ```
 
-#### `setLocalConfig(config)`
+#### `setLocalConfig(config: string): boolean`
 
 设置本地配置。
 
@@ -794,7 +796,7 @@ const success = client.setLocalConfig('config_string')
 console.log('配置设置:', success ? '成功' : '失败')
 ```
 
-#### `openFileDialog(type)`
+#### `openFileDialog(type: 0 | 1): Promise<{ szFileName: string, file?: File }>`
 
 打开文件选择对话框。
 
@@ -806,7 +808,7 @@ const { szFileName, file } = await client.openFileDialog(1)
 const { szFileName } = await client.openFileDialog(0)
 ```
 
-#### `sendHTTPRequest(deviceId, url, options?)`
+#### `sendHTTPRequest(deviceId: string, url: string, options?: HTTPRequestOptions): Promise<any>`
 
 发送 HTTP 请求到设备。
 
@@ -821,7 +823,7 @@ const response = await client.sendHTTPRequest(
 )
 ```
 
-#### `getTextOverlay(deviceId, url, options?)`
+#### `getTextOverlay(deviceId: string, url: string, options?: HTTPRequestOptions): Promise<any>`
 
 获取文字叠加信息。
 
@@ -834,7 +836,7 @@ const overlay = await client.getTextOverlay(
 
 ### 📡 事件系统
 
-#### `on(event, handler)`
+#### `on<K extends keyof HikVideoEventMap>(event: K, handler: (data: HikVideoEventMap[K]) => void): () => void`
 
 监听事件。
 
@@ -848,7 +850,7 @@ const unsubscribe = client.on('device:connected', (device) => {
 unsubscribe()
 ```
 
-#### `off(event, handler?)`
+#### `off<K extends keyof HikVideoEventMap>(event: K, handler?: (data: HikVideoEventMap[K]) => void): void`
 
 取消监听。
 
@@ -892,13 +894,21 @@ client.off('device:connected')
 ```typescript
 import {
   delay,
+  encodeString,
   formatDate,
+  generateDeviceIdentify,
   generateUniqueFileName,
   getCurrentTimeString,
   getTodayTimeRange,
   isValidIP,
   isValidPort,
   isValidTimeRange,
+  loadXML,
+  normalizePort,
+  parseDeviceIdentify,
+  toProtocolValue,
+  toXMLString,
+  uint8ArrayToBase64,
 } from 'hikvideoctrl'
 
 // 时间格式化
@@ -924,16 +934,44 @@ const rangeValid = isValidTimeRange('2024-01-01 00:00:00', '2024-01-01 23:59:59'
 
 // 延迟
 await delay(1000)
+
+// 生成设备标识
+const deviceId = generateDeviceIdentify('192.168.1.64', 80, 'admin')
+
+// 解析设备标识
+const { host, port, username } = parseDeviceIdentify(deviceId)
+
+// 规范化端口
+const normalizedPort = normalizePort(80, 'http')
+
+// 转换协议值
+const protocolValue = toProtocolValue('http') // 1
+
+// 字符串编码
+const encoded = encodeString('password')
+
+// Base64 编码
+const base64 = uint8ArrayToBase64(new Uint8Array([1, 2, 3]))
+
+// XML 处理
+const xmlDoc = loadXML('<root><item>value</item></root>')
+const xmlString = toXMLString(xmlDoc)
 ```
 
 ### 📊 常量定义
 
 ```typescript
 import {
+  AudioErrorCode,
   DefaultPorts,
   ErrorCodes,
   FileFormat,
+  IPModePorts,
+  PackageType,
+  ProtocolType,
   PTZControlType,
+  RecordType,
+  SEARCH_RECORDS_PER_PAGE,
   StreamType,
   WindowType,
 } from 'hikvideoctrl'
@@ -959,8 +997,33 @@ DefaultPorts.HTTP // 80
 DefaultPorts.HTTPS // 443
 DefaultPorts.RTSP // 554
 
+// 协议类型
+ProtocolType.HTTP // 1
+ProtocolType.HTTPS // 2
+
+// 包类型
+PackageType.PS // 2
+PackageType.MP4 // 11
+
+// 录像类型
+RecordType.RealPlay // 'realplay'
+RecordType.Playback // 'playback'
+
+// IP 模式端口
+IPModePorts // [0, 7071, 80]
+
+// 每页搜索记录数
+SEARCH_RECORDS_PER_PAGE // 40
+
+// 音频错误码
+AudioErrorCode.AlreadyOpen // 1023
+AudioErrorCode.AlreadyClosed // 1023
+
 // 错误码映射
 ErrorCodes[1001] // '码流传输过程异常'
+ErrorCodes[1002] // '回放结束'
+ErrorCodes[1017] // '密码错误'
+// ... 更多错误码
 ```
 
 ### 🎯 实用属性
@@ -1319,10 +1382,13 @@ catch (error) {
 
 ## 📖 TypeScript 支持
 
-库完全使用 TypeScript 编写，提供完整的类型定义和智能提示：
+库完全使用 TypeScript 编写，提供完整的类型定义和智能提示。
+
+### 📦 类型导出
 
 ```typescript
 import type {
+  // 主要类型接口
   CaptureOptions,
   ChannelInfo,
   DeviceCredentials,
@@ -1330,16 +1396,23 @@ import type {
   DeviceSession,
   DownloadByTimeOptions,
   DownloadOptions,
-  HikVideoClient,
+  FileFormatValue,
   HikVideoEventMap,
   HTTPRequestOptions,
   PlaybackOptions,
   PluginInitOptions,
   PreviewOptions,
+  ProtocolTypeValue,
   PTZCommandOptions,
+  PTZControlTypeValue,
   RecordingOptions,
   RecordSearchOptions,
+  StreamTypeValue,
+  WindowTypeValue,
 } from 'hikvideoctrl'
+
+// 类导出
+import { HikSDKError, HikVideoClient } from 'hikvideoctrl'
 ```
 
 ### 📋 完整类型定义说明
@@ -1552,6 +1625,49 @@ interface HikVideoEventMap {
   'recording:started': { fileName: string, windowIndex: number }
   'capture:completed': { fileName: string, windowIndex: number, format: string }
   // ... 更多事件类型
+}
+```
+
+#### 值类型（Value Types）
+
+这些类型用于提取常量对象的值类型，提供更好的类型安全：
+
+```typescript
+// 窗口布局值类型：1 | 4 | 9 | 16
+type WindowTypeValue = typeof WindowType[keyof typeof WindowType]
+
+// 码流类型值：1 | 2
+type StreamTypeValue = typeof StreamType[keyof typeof StreamType]
+
+// PTZ 控制类型值：1 | 2 | 3 | ... | 15
+type PTZControlTypeValue = typeof PTZControlType[keyof typeof PTZControlType]
+
+// 协议类型值：1 | 2
+type ProtocolTypeValue = typeof ProtocolType[keyof typeof ProtocolType]
+
+// 文件格式值：'jpg' | 'jpeg' | 'png' | 'bmp'
+type FileFormatValue = typeof FileFormat[keyof typeof FileFormat]
+```
+
+使用示例：
+
+```typescript
+import type { StreamTypeValue, WindowTypeValue } from 'hikvideoctrl'
+import { StreamType, WindowType } from 'hikvideoctrl'
+
+// 类型安全的函数参数
+function setLayout(layout: WindowTypeValue) {
+  // layout 只能是 1 | 4 | 9 | 16
+  client.changeWindowLayout(layout)
+}
+
+setLayout(WindowType.Four) // ✅ 正确
+setLayout(4) // ✅ 正确
+setLayout(5) // ❌ 类型错误
+
+// 码流类型
+function startStream(streamType: StreamTypeValue) {
+  // streamType 只能是 1 | 2
 }
 ```
 
