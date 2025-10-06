@@ -1,7 +1,4 @@
-# HikVideoCtrl
-
-[![NPM Version](https://img.shields.io/npm/v/hikvideoctrl?style=flat-square)](https://www.npmjs.com/package/hikvideoctrl)
-[![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl?style=flat-square)](https://www.npmjs.com/package/hikvideoctrl)
+# HikVideoCtrl [![NPM Version](https://img.shields.io/npm/v/hikvideoctrl?style=flat-square)](https://www.npmjs.com/package/hikvideoctrl) [![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl?style=flat-square)](https://www.npmjs.com/package/hikvideoctrl)
 
 🎥 海康威视无插件视频播放 SDK 封装，支持 ESM 模块化，提供完整的 TypeScript API 和现代化开发体验。
 
