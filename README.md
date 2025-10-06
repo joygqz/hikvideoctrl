@@ -26,15 +26,17 @@ yarn add hikvideoctrl
 
 ## 🚀 快速开始
 
-### 1. 导入海康官方基本库
+### 1. 配置海康 WEB 无插件开发包
 
-访问官网下载最新 WEB 无插件开发包，[下载页面](https://open.hikvision.com/download/5cda567cf47ae80dd41a54b3?type=10&id=6343bb4b03df46c39032d2ef825eb70d)
+1. 访问官网下载最新 WEB 无插件开发包，详情见[下载页面](https://open.hikvision.com/download/5cda567cf47ae80dd41a54b3?type=10&id=6343bb4b03df46c39032d2ef825eb70d)。
 
-使用示例：如使用 vite 开发，将 `codebase` 目录及所有文件拷贝至 `public` 目录下，并在 `index.html` 中引入：
+2. （以 Vite 项目为例）将官方包中的 `codebase` 目录及所有文件复制到项目的 `public` 目录，并在 `index.html` 中引入：
 
 ```html
 <script src="/codebase/webVideoCtrl.js"></script>
 ```
+
+3. 按照官方包文档的说明配置 Nginx 代理，确保海康服务能正确访问。
 
 ### 2. 三步开始预览
 
@@ -65,13 +67,9 @@ await client.startPreview(device.id, {
 })
 ```
 
-> 提示：当 `container` 传入字符串时，请直接使用容器元素的 ID（不带 `#`），例如准备 `<div id="video-container"></div>`，也可以直接传入 DOM 元素。
-
-就这么简单！🎉
-
 ## 📚 完整 API 文档
 
-### 核心客户端
+### 🔑 核心客户端
 
 #### `createHikVideoClient()`
 
