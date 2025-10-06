@@ -32,6 +32,10 @@
 - [错误处理](#-错误处理)
 - [TypeScript 支持](#-typescript-支持)
 - [贡献与反馈](#-贡献与反馈)
+  - [问题反馈](#问题反馈)
+  - [贡献代码](#贡献代码)
+  - [Star 支持](#star-支持)
+  - [赞助支持](#-赞助支持)
 
 ## ✨ 特性
 
@@ -1615,4 +1619,12 @@ client.on('device:connected', (device) => {
 
 ### Star 支持
 
-如果这个项目对您有帮助，欢迎给个 ⭐️ Star 支持一下！
+如果这个项目对您有帮助，欢迎给个 ⭐️ [Star](https://github.com/joygqz/hikvideoctrl) 支持一下！
+
+### 赞助支持
+
+如果这个项目对您的工作有所帮助，可以请作者喝杯咖啡 ☕️
+
+[![爱发电](https://img.shields.io/badge/爱发电-支持作者-946ce6?style=for-the-badge&logo=github-sponsors)](https://afdian.com/a/joygqz)
+
+您的支持是我持续维护和改进这个项目的动力！
