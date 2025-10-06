@@ -1,6 +1,4 @@
-# HikVideoCtrl
-
-[![NPM Version](https://img.shields.io/npm/v/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl) [![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl)
+# HikVideoCtrl [![NPM Version](https://img.shields.io/npm/v/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl) [![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl)
 
 海康威视无插件视频播放 SDK 封装库，支持 TypeScript/ESM，提供设备管理、视频播放、PTZ 控制、录像管理等完整功能。
 
@@ -48,7 +46,7 @@ const client = createHikVideoClient()
 
 // 2️⃣ 初始化插件
 await client.initialize({
-  container: '#video-container', // 视频容器
+  container: 'video-container', // 容器元素的 ID（字符串请勿携带 #）
   width: 1000,
   height: 600,
   layout: 4, // 4 窗口布局
@@ -66,6 +64,8 @@ await client.startPreview(device.id, {
   windowIndex: 0, // 窗口索引
 })
 ```
+
+> 提示：当 `container` 传入字符串时，请直接使用容器元素的 ID（不带 `#`），例如准备 `<div id="video-container"></div>`，也可以直接传入 DOM 元素。
 
 就这么简单！🎉
 
@@ -91,9 +91,9 @@ const client = createHikVideoClient()
 
 ```typescript
 await client.initialize({
-  container: '#video-container', // 容器选择器或 DOM 元素
-  width: 1000, // 宽度（像素或百分比字符串）
-  height: 600, // 高度
+  container: 'video-container', // 容器元素 ID 或 DOM 元素
+  width: 1000, // 宽度（像素或百分比字符串，默认 '100%')
+  height: 600, // 高度（默认 '100%')
   layout: 4, // 窗口布局：1/4/9/16
   noPlugin: true, // 使用无插件模式（默认 true）
   debugMode: false, // 调试模式
@@ -114,18 +114,18 @@ await client.initialize({
 
 **参数说明：**
 
-| 参数                          | 类型                    | 必填 | 说明                          |
-| ----------------------------- | ----------------------- | ---- | ----------------------------- |
-| `container`                   | `string \| HTMLElement` | ✅   | 视频容器选择器或 DOM 元素     |
-| `width`                       | `string \| number`      | ❌   | 宽度，默认 1000               |
-| `height`                      | `string \| number`      | ❌   | 高度，默认 600                |
-| `layout`                      | `number`                | ❌   | 窗口布局：1/4/9/16，默认 1    |
-| `noPlugin`                    | `boolean`               | ❌   | 是否使用无插件模式，默认 true |
-| `debugMode`                   | `boolean`               | ❌   | 是否开启调试模式              |
-| `enableDoubleClickFullScreen` | `boolean`               | ❌   | 是否启用双击全屏              |
-| `onWindowSelect`              | `function`              | ❌   | 窗口选中回调                  |
-| `onWindowDoubleClick`         | `function`              | ❌   | 窗口双击回调                  |
-| `onInitComplete`              | `function`              | ❌   | 初始化完成回调                |
+| 参数                          | 类型                    | 必填 | 说明                                               |
+| ----------------------------- | ----------------------- | ---- | -------------------------------------------------- |
+| `container`                   | `string \| HTMLElement` | ✅   | 视频容器 ID 或 DOM 元素（字符串请传 ID，勿含 `#`） |
+| `width`                       | `string \| number`      | ❌   | 宽度，默认 `'100%'`                                |
+| `height`                      | `string \| number`      | ❌   | 高度，默认 `'100%'`                                |
+| `layout`                      | `number`                | ❌   | 窗口布局：1/4/9/16，默认 1                         |
+| `noPlugin`                    | `boolean`               | ❌   | 是否使用无插件模式，默认 true                      |
+| `debugMode`                   | `boolean`               | ❌   | 是否开启调试模式                                   |
+| `enableDoubleClickFullScreen` | `boolean`               | ❌   | 是否启用双击全屏                                   |
+| `onWindowSelect`              | `function`              | ❌   | 窗口选中回调                                       |
+| `onWindowDoubleClick`         | `function`              | ❌   | 窗口双击回调                                       |
+| `onInitComplete`              | `function`              | ❌   | 初始化完成回调                                     |
 
 ### 📡 设备管理
 
@@ -961,7 +961,7 @@ class VideoMonitor {
   async init() {
     // 初始化
     await this.client.initialize({
-      container: '#video-container',
+      container: 'video-container',
       width: 1200,
       height: 800,
       layout: WindowType.Four,
@@ -1068,7 +1068,7 @@ async function playbackAndDownload() {
 
   // 初始化
   await client.initialize({
-    container: '#video-container',
+    container: 'video-container',
     width: 800,
     height: 600,
   })
@@ -1129,7 +1129,7 @@ const channels = ref<any[]>([])
 onMounted(async () => {
   // 初始化
   await client.initialize({
-    container: '#video-container',
+    container: 'video-container',
     width: '100%',
     height: 600,
     layout: 4,
@@ -1302,11 +1302,3 @@ import type {
 
 // 所有类型都有完整的智能提示
 ```
-
-## 📄 许可证
-
-[MIT License](LICENSE) © 2024 [joygqz](https://github.com/joygqz)
-
-## ⭐ 如果这个库对你有帮助，请给一个 Star！
-
-[![Star History Chart](https://api.star-history.com/svg?repos=joygqz/hikvideoctrl&type=Date)](https://star-history.com/#joygqz/hikvideoctrl&Date)

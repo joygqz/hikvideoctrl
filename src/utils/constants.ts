@@ -1,7 +1,11 @@
-// SDK 版本信息
+/**
+ * SDK 版本信息
+ */
 export const SDK_VERSION = 'websdk3.220191023'
 
-// 错误码映射
+/**
+ * 错误码映射
+ */
 export const ErrorCodes: Record<number, string> = {
   1001: '码流传输过程异常',
   1002: '回放结束',
@@ -27,7 +31,9 @@ export const ErrorCodes: Record<number, string> = {
   1022: '采集音频失败，可能是在非 https/localhost 域下使用对讲导致，或者没有插耳机等',
 }
 
-// PTZ 控制类型
+/**
+ * PTZ 控制类型
+ */
 export const PTZControlType = {
   Up: 1,
   Down: 2,
@@ -46,19 +52,25 @@ export const PTZControlType = {
   IrisOut: 15,
 } as const
 
-// 流类型
+/**
+ * 流类型
+ */
 export const StreamType = {
   MainStream: 1, // 主码流
   SubStream: 2, // 子码流
 } as const
 
-// 包类型
+/**
+ * 包类型
+ */
 export const PackageType = {
   PS: 2,
   MP4: 11,
 } as const
 
-// 窗口类型
+/**
+ * 窗口类型
+ */
 export const WindowType = {
   Single: 1, // 单窗口
   Four: 4, // 四窗口
@@ -66,25 +78,33 @@ export const WindowType = {
   Sixteen: 16, // 十六窗口
 } as const
 
-// 文件类型
+/**
+ * 文件类型
+ */
 export const FileDialogType = {
   Folder: 0, // 文件夹
   File: 1, // 文件
 } as const
 
-// 录像类型
+/**
+ * 录像类型
+ */
 export const RecordType = {
   RealPlay: 'realplay',
   Playback: 'playback',
 } as const
 
-// 协议类型
+/**
+ * 协议类型
+ */
 export const ProtocolType = {
   HTTP: 1,
   HTTPS: 2,
 } as const
 
-// 文件格式
+/**
+ * 文件格式
+ */
 export const FileFormat = {
   JPG: 'jpg',
   JPEG: 'jpeg',
@@ -92,28 +112,50 @@ export const FileFormat = {
   BMP: 'bmp',
 } as const
 
-// 默认端口配置
+/**
+ * 默认端口配置
+ */
 export const DefaultPorts = {
   HTTP: 80,
   HTTPS: 443,
   RTSP: 554,
 }
 
-// 类型别名
+/**
+ * 窗口类型枚举值
+ */
 export type WindowTypeValue = typeof WindowType[keyof typeof WindowType]
+/**
+ * 码流类型枚举值
+ */
 export type StreamTypeValue = typeof StreamType[keyof typeof StreamType]
+/**
+ * PTZ 控制类型枚举值
+ */
 export type PTZControlTypeValue = typeof PTZControlType[keyof typeof PTZControlType]
+/**
+ * 协议类型枚举值
+ */
 export type ProtocolTypeValue = typeof ProtocolType[keyof typeof ProtocolType]
+/**
+ * 文件格式枚举值
+ */
 export type FileFormatValue = typeof FileFormat[keyof typeof FileFormat]
 
-// IP 模式端口配置
+/**
+ * IP 模式端口配置
+ */
 export const IPModePorts = [0, 7071, 80]
 
-// 音频错误码
+/**
+ * 音频错误码
+ */
 export const AudioErrorCode = {
   AlreadyOpen: 1023,
   AlreadyClosed: 1023,
 }
 
-// 每页搜索记录数
+/**
+ * 每页搜索记录数
+ */
 export const SEARCH_RECORDS_PER_PAGE = 40

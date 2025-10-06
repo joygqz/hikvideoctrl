@@ -7,7 +7,7 @@ import { HikSDKError } from '../errors'
  * 解析容器 ID
  *
  * @param container 容器元素或 ID
- * @returns 容器
+ * @returns 容器元素 ID（若传入 DOM 元素且缺少 ID，会自动生成）
  * @throws {HikSDKError} 当容器无效时抛出错误
  */
 function resolveContainerId(container: string | HTMLElement): string {
@@ -18,7 +18,6 @@ function resolveContainerId(container: string | HTMLElement): string {
     throw new HikSDKError('validation', '插件容器必须是有效的 DOM 元素或元素 ID')
 
   // 如果元素没有 ID，自动生成一个
-  // If element has no ID, generate one automatically
   if (!container.id)
     container.id = `hik-video-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`
 
@@ -28,8 +27,8 @@ function resolveContainerId(container: string | HTMLElement): string {
 /**
  * 转换为 CSS 尺寸字符串
  *
- * @param value 尺寸值（数字或字符串）- Size value (number or string)
- * @returns CSS 尺寸字符串 CSS size string
+ * @param value 尺寸值（数字或字符串）
+ * @returns CSS 尺寸字符串
  */
 function toCssSize(value?: string | number): string {
   if (value === undefined)
@@ -40,7 +39,7 @@ function toCssSize(value?: string | number): string {
 /**
  * 从 XML 文档中解析窗口索引
  *
- * @param xmlDoc XML 文档 - XML document
+ * @param xmlDoc XML 文档
  * @returns 窗口索引
  */
 function parseWindowIndex(xmlDoc: Document | null | undefined): number {
@@ -49,7 +48,7 @@ function parseWindowIndex(xmlDoc: Document | null | undefined): number {
 }
 
 /**
- * 插件宿主类 管理海康视频插件的生命周期
+ * 插件宿主类，管理海康视频插件的生命周期
  *
  * 负责插件的初始化、窗口管理等核心功能
  *
@@ -67,7 +66,6 @@ function parseWindowIndex(xmlDoc: Document | null | undefined): number {
 export class PluginHost {
   /**
    * 初始化状态标志
-   * Initialization status flag
    */
   private initialized = false
 

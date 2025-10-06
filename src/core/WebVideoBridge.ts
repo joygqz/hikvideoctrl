@@ -55,6 +55,7 @@ function createBridgeError(
 }
 
 /**
+ * WebVideoCtrl SDK 的桥接封装
  * @example
  * ```typescript
  * const bridge = new WebVideoBridge()

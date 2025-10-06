@@ -117,6 +117,7 @@ export class HikVideoClient {
   /**
    * 初始化视频插件（必须首先调用）
    * @param options 初始化选项
+   * @returns Promise，在插件初始化完成后解析
    * @throws {HikSDKError} 当浏览器不支持或初始化失败时抛出错误
    * @example
    * ```typescript
@@ -204,7 +205,7 @@ export class HikVideoClient {
   /**
    * 连接海康设备
    * @param credentials 设备凭证信息
-   * @returns 设备会话信息
+   * @returns Promise，解析为连接成功的设备会话信息
    * @throws {HikSDKError} 当连接失败时抛出错误
    * @example
    * ```typescript
@@ -226,6 +227,7 @@ export class HikVideoClient {
   /**
    * 断开设备连接
    * @param deviceId 设备 ID
+   * @returns Promise，在断开完成后解析
    * @throws {HikSDKError} 当断开失败时抛出错误
    * @example
    * ```typescript
@@ -240,7 +242,7 @@ export class HikVideoClient {
   /**
    * 获取设备详细信息（XML 格式）
    * @param deviceId 设备 ID
-   * @returns XML 文档
+   * @returns Promise，解析为设备信息的 XML 文档
    * @throws {HikSDKError} 当获取失败时抛出错误
    * @example
    * ```typescript
@@ -274,7 +276,7 @@ export class HikVideoClient {
   /**
    * 获取设备所有通道信息
    * @param deviceId 设备 ID
-   * @returns 通道信息数组
+   * @returns Promise，解析为通道信息数组
    * @throws {HikSDKError} 当获取失败时抛出错误
    * @example
    * ```typescript
@@ -292,7 +294,7 @@ export class HikVideoClient {
   /**
    * 获取设备音频信息
    * @param deviceId 设备 ID
-   * @returns XML 文档
+   * @returns Promise，解析为音频信息的 XML 文档
    * @throws {HikSDKError} 当获取失败时抛出错误
    * @example
    * ```typescript
@@ -308,6 +310,7 @@ export class HikVideoClient {
    * 导出设备配置
    * @param deviceId 设备 ID
    * @param password 配置密码
+   * @returns Promise，在配置导出完成后解析
    * @throws {HikSDKError} 当导出失败时抛出错误
    * @example
    * ```typescript
@@ -325,6 +328,7 @@ export class HikVideoClient {
    * @param fileName 文件名
    * @param password 配置密码
    * @param file 配置文件
+   * @returns Promise，在配置导入完成后解析
    * @throws {HikSDKError} 当导入失败时抛出错误
    * @example
    * ```typescript
@@ -340,6 +344,7 @@ export class HikVideoClient {
   /**
    * 重启设备
    * @param deviceId 设备 ID
+   * @returns Promise，在重启命令下发后解析
    * @throws {HikSDKError} 当重启失败时抛出错误
    * @example
    * ```typescript
@@ -354,6 +359,7 @@ export class HikVideoClient {
   /**
    * 重新连接设备
    * @param deviceId 设备 ID
+   * @returns Promise，在重连完成后解析
    * @throws {HikSDKError} 当重连失败时抛出错误
    * @example
    * ```typescript
@@ -369,6 +375,7 @@ export class HikVideoClient {
    * 恢复设备出厂设置
    * @param deviceId 设备 ID
    * @param mode 恢复模式（'basic' 基本恢复 | 'full' 完全恢复）
+   * @returns Promise，在命令执行完成后解析
    * @throws {HikSDKError} 当恢复失败时抛出错误
    * @example
    * ```typescript
@@ -388,6 +395,7 @@ export class HikVideoClient {
    * @param deviceId 设备 ID
    * @param fileName 固件文件名
    * @param file 固件文件
+   * @returns Promise，在升级任务启动后解析
    * @throws {HikSDKError} 当升级失败时抛出错误
    * @example
    * ```typescript
@@ -403,7 +411,7 @@ export class HikVideoClient {
   /**
    * 获取设备升级进度
    * @param deviceId 设备 ID
-   * @returns 升级进度信息
+   * @returns Promise，解析为升级进度信息
    * @throws {HikSDKError} 当获取失败时抛出错误
    * @example
    * ```typescript
@@ -421,6 +429,7 @@ export class HikVideoClient {
    * 开始实时视频预览
    * @param deviceId 设备 ID
    * @param options 预览选项
+   * @returns Promise，在预览成功启动后解析
    * @throws {HikSDKError} 当预览失败时抛出错误
    * @example
    * ```typescript
@@ -439,6 +448,7 @@ export class HikVideoClient {
   /**
    * 停止视频预览
    * @param windowIndex 窗口索引（可选，默认当前窗口）
+   * @returns Promise，在预览停止后解析
    * @throws {HikSDKError} 当停止失败时抛出错误
    * @example
    * ```typescript
@@ -456,6 +466,7 @@ export class HikVideoClient {
 
   /**
    * 停止所有窗口的预览
+   * @returns Promise，在所有预览窗口停止后解析
    * @throws {HikSDKError} 当停止失败时抛出错误
    * @example
    * ```typescript
@@ -471,6 +482,7 @@ export class HikVideoClient {
    * 开始录像回放
    * @param deviceId 设备 ID
    * @param options 回放选项
+   * @returns Promise，在回放成功启动后解析
    * @throws {HikSDKError} 当回放失败时抛出错误
    * @example
    * ```typescript
@@ -490,6 +502,7 @@ export class HikVideoClient {
   /**
    * 停止录像回放
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在回放停止后解析
    * @throws {HikSDKError} 当停止失败时抛出错误
    * @example
    * ```typescript
@@ -504,6 +517,7 @@ export class HikVideoClient {
   /**
    * 暂停录像回放
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在暂停完成后解析
    * @throws {HikSDKError} 当暂停失败时抛出错误
    * @example
    * ```typescript
@@ -518,6 +532,7 @@ export class HikVideoClient {
   /**
    * 恢复录像回放
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在恢复完成后解析
    * @throws {HikSDKError} 当恢复失败时抛出错误
    * @example
    * ```typescript
@@ -532,6 +547,7 @@ export class HikVideoClient {
   /**
    * 快进播放
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在命令执行完成后解析
    * @throws {HikSDKError} 当快进失败时抛出错误
    * @example
    * ```typescript
@@ -546,6 +562,7 @@ export class HikVideoClient {
   /**
    * 慢速播放
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在命令执行完成后解析
    * @throws {HikSDKError} 当慢放失败时抛出错误
    * @example
    * ```typescript
@@ -560,6 +577,7 @@ export class HikVideoClient {
   /**
    * 打开声音
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在声音开启后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -574,6 +592,7 @@ export class HikVideoClient {
   /**
    * 关闭声音
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在声音关闭后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -589,6 +608,7 @@ export class HikVideoClient {
    * 设置音量
    * @param volume 音量值（0-100）
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在音量设置完成后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -619,6 +639,7 @@ export class HikVideoClient {
   /**
    * 启用电子放大
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在功能启用后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -633,6 +654,7 @@ export class HikVideoClient {
   /**
    * 禁用电子放大
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在功能关闭后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -648,6 +670,7 @@ export class HikVideoClient {
    * 启用 3D 定位
    * @param windowIndex 窗口索引（可选）
    * @param callback 回调函数（可选）
+   * @returns Promise，在功能启用后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -720,6 +743,7 @@ export class HikVideoClient {
    * PTZ 云台控制
    * @param options PTZ 控制选项
    * @param stop 是否停止动作（默认 false）
+   * @returns Promise，在命令执行完成后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -745,6 +769,7 @@ export class HikVideoClient {
   /**
    * 开始 PTZ 控制
    * @param options PTZ 控制选项
+   * @returns Promise，在命令执行完成后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -763,6 +788,7 @@ export class HikVideoClient {
    * 停止 PTZ 控制
    * @param action PTZ 动作类型
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在停止命令执行完成后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -778,6 +804,7 @@ export class HikVideoClient {
    * 设置预置位
    * @param preset 预置位号（1-255）
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在设置完成后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -793,6 +820,7 @@ export class HikVideoClient {
    * 调用预置位
    * @param preset 预置位号（1-255）
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在调用完成后解析
    * @throws {HikSDKError} 当操作失败时抛出错误
    * @example
    * ```typescript
@@ -808,7 +836,7 @@ export class HikVideoClient {
    * 搜索录像文件
    * @param deviceId 设备 ID
    * @param options 搜索选项
-   * @returns XML 文档包含录像列表
+   * @returns Promise，解析为包含录像列表的 XML 文档
    * @throws {HikSDKError} 当搜索失败时抛出错误
    * @example
    * ```typescript
@@ -830,7 +858,7 @@ export class HikVideoClient {
   /**
    * 开始本地录像
    * @param options 录像选项
-   * @returns 录像文件名
+   * @returns Promise，解析为实际开始录制的文件名
    * @throws {HikSDKError} 当录像失败时抛出错误
    * @example
    * ```typescript
@@ -849,6 +877,7 @@ export class HikVideoClient {
   /**
    * 停止本地录像
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在录像停止后解析
    * @throws {HikSDKError} 当停止失败时抛出错误
    * @example
    * ```typescript
@@ -863,7 +892,7 @@ export class HikVideoClient {
   /**
    * 抓拍截图
    * @param options 抓拍选项（可选）
-   * @returns 截图文件名
+   * @returns Promise，解析为保存或返回的截图文件名
    * @throws {HikSDKError} 当抓拍失败时抛出错误
    * @example
    * ```typescript
@@ -885,7 +914,7 @@ export class HikVideoClient {
    * @param playbackUri 回放 URI
    * @param fileName 文件名
    * @param options 下载选项（可选）
-   * @returns 下载句柄
+   * @returns Promise，解析为下载任务句柄
    * @throws {HikSDKError} 当下载失败时抛出错误
    * @example
    * ```typescript
@@ -907,7 +936,7 @@ export class HikVideoClient {
    * @param deviceId 设备 ID
    * @param playbackUri 回放 URI
    * @param options 下载选项
-   * @returns 下载句柄
+   * @returns Promise，解析为下载任务句柄
    * @throws {HikSDKError} 当下载失败时抛出错误
    * @example
    * ```typescript
@@ -931,6 +960,7 @@ export class HikVideoClient {
    * 设置视频加密密钥
    * @param secretKey 密钥
    * @param windowIndex 窗口索引（可选）
+   * @returns Promise，在密钥设置完成后解析
    * @throws {HikSDKError} 当设置失败时抛出错误
    * @example
    * ```typescript
@@ -945,7 +975,7 @@ export class HikVideoClient {
   /**
    * 获取视频 OSD 时间
    * @param windowIndex 窗口索引（可选）
-   * @returns OSD 时间字符串
+   * @returns Promise，解析为当前窗口的 OSD 时间字符串
    * @throws {HikSDKError} 当获取失败时抛出错误
    * @example
    * ```typescript
@@ -988,7 +1018,7 @@ export class HikVideoClient {
   /**
    * 打开文件选择对话框
    * @param type 类型（0-文件夹，1-文件）
-   * @returns 文件信息
+   * @returns Promise，解析为所选文件信息
    * @throws {HikSDKError} 当打开失败时抛出错误
    * @example
    * ```typescript
@@ -1008,7 +1038,7 @@ export class HikVideoClient {
    * @param deviceId 设备 ID
    * @param url 请求 URL
    * @param options HTTP 请求选项（可选）
-   * @returns 响应数据
+   * @returns Promise，解析为设备返回的数据
    * @throws {HikSDKError} 当请求失败时抛出错误
    * @example
    * ```typescript
@@ -1027,6 +1057,13 @@ export class HikVideoClient {
     return this.config.sendHTTPRequest(deviceId, url, options ?? {})
   }
 
+  /**
+   * 获取叠加信息
+   * @param deviceId 设备 ID
+   * @param url 请求 URL
+   * @param options HTTP 请求选项（可选）
+   * @returns Promise，解析为设备返回的叠加信息
+   */
   async getTextOverlay(deviceId: string, url: string, options?: HTTPRequestOptions): Promise<any> {
     this.ensureInitialized()
     return this.config.getTextOverlay(deviceId, url, options ?? {})
