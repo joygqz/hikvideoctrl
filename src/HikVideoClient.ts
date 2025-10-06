@@ -1,5 +1,6 @@
 import type {
   CaptureOptions,
+  ChannelInfo,
   DeviceCredentials,
   DevicePort,
   DeviceSession,
@@ -286,7 +287,7 @@ export class HikVideoClient {
    * })
    * ```
    */
-  async getChannels(deviceId: string) {
+  async getChannels(deviceId: string): Promise<ChannelInfo[]> {
     this.ensureInitialized()
     return this.devices.getChannels(deviceId)
   }
