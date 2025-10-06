@@ -1,0 +1,68 @@
+name: ❓ 问题咨询
+description: 询问使用方法或遇到的困惑
+title: '[Question]: '
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        在提问之前，请先查看 [README 文档](https://github.com/joygqz/hikvideoctrl#readme) 和现有的 Issues。
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 您的问题
+      description: 请详细描述您的问题或困惑
+      placeholder: 我想知道如何...
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 您尝试过什么
+      description: 请描述您已经尝试过的方法
+      placeholder: |
+        我尝试了...
+        但是遇到了...
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: 相关代码
+      description: 如果有相关代码，请粘贴在这里
+      render: typescript
+      placeholder: |
+        import { createHikVideoClient } from 'hikvideoctrl'
+        // 您的代码...
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 使用环境
+      description: 请提供您的使用环境信息
+      placeholder: |
+        - 浏览器：Chrome 120
+        - 框架：Vue 3
+        - hikvideoctrl 版本：1.0.0
+        - 海康设备型号：DS-2CD2xxx
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 其他信息
+      description: 添加任何其他相关信息
+      placeholder: 其他相关信息...
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 确认清单
+      description: 提交前请确认以下事项
+      options:
+        - label: 我已经阅读了文档
+          required: true
+        - label: 我已经搜索过现有的 Issues
+          required: true

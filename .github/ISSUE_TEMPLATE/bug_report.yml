@@ -1,0 +1,150 @@
+name: 🐛 Bug 报告
+description: 报告一个 Bug 或问题
+title: '[Bug]: '
+labels: [bug, 需要确认]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您花时间填写这个 Bug 报告！
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 问题描述
+      description: 请详细描述您遇到的问题
+      placeholder: 告诉我们发生了什么...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: 复现步骤
+      description: 请提供复现问题的详细步骤
+      placeholder: |
+        1. 执行 '...'
+        2. 点击 '....'
+        3. 滚动到 '....'
+        4. 看到错误
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期望行为
+      description: 请描述您期望发生什么
+      placeholder: 应该发生什么...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: 实际行为
+      description: 请描述实际发生了什么
+      placeholder: 实际发生了什么...
+    validations:
+      required: true
+
+  - type: textarea
+    id: code-snippet
+    attributes:
+      label: 相关代码片段
+      description: 如果可能，请提供相关的代码片段
+      render: typescript
+      placeholder: |
+        import { createHikVideoClient } from 'hikvideoctrl'
+
+        const client = createHikVideoClient()
+        // 您的代码...
+
+  - type: textarea
+    id: error-message
+    attributes:
+      label: 错误信息
+      description: 请粘贴完整的错误信息或堆栈跟踪
+      render: shell
+      placeholder: |
+        Error: ...
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本信息
+      description: 您使用的 hikvideoctrl 版本是？
+      placeholder: 例如：1.0.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: 浏览器
+      description: 您使用的是什么浏览器？
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    id: browser-version
+    attributes:
+      label: 浏览器版本
+      description: 浏览器版本号是？
+      placeholder: 例如：120.0.0.0
+
+  - type: dropdown
+    id: framework
+    attributes:
+      label: 使用的框架
+      description: 您使用的是什么前端框架？
+      options:
+        - Vue 3
+        - Vue 2
+        - React
+        - Angular
+        - Svelte
+        - 原生 JavaScript
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    id: nodejs-version
+    attributes:
+      label: Node.js 版本
+      description: 您的 Node.js 版本是？
+      placeholder: 例如：18.17.0
+
+  - type: input
+    id: device-info
+    attributes:
+      label: 海康设备信息
+      description: 海康设备型号和固件版本（如果相关）
+      placeholder: 例如：DS-2CD2xxx，固件 V5.7.3
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 其他信息
+      description: 添加任何其他关于问题的上下文或截图
+      placeholder: 其他相关信息...
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 确认清单
+      description: 提交前请确认以下事项
+      options:
+        - label: 我已经搜索过现有的 Issues，没有发现类似问题
+          required: true
+        - label: 我已经阅读了文档
+          required: true
+        - label: 我提供了足够的信息来重现这个问题
+          required: true

@@ -1,0 +1,70 @@
+name: 📚 文档问题
+description: 报告文档中的问题或改进建议
+title: '[Docs]: '
+labels: [documentation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您帮助改进文档！
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: 文档类型
+      description: 这是关于哪类文档的问题？
+      options:
+        - README
+        - API 文档
+        - 示例代码
+        - TypeScript 类型定义
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题描述
+      description: 请描述文档中存在的问题
+      placeholder: |
+        在 README 的某个章节中...
+        或者 API 文档缺少...
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: 文档位置
+      description: 问题出现在文档的哪个位置？
+      placeholder: 例如：README.md 第 100 行，或者 API 文档的 connectDevice 方法
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 改进建议
+      description: 您建议如何改进这部分文档？
+      placeholder: 建议修改为...
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 其他信息
+      description: 添加任何其他相关信息或截图
+      placeholder: 其他相关信息...
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 确认清单
+      description: 提交前请确认以下事项
+      options:
+        - label: 我已经检查了最新版本的文档
+          required: true
+        - label: 我愿意提交 PR 来修复这个文档问题（可选）
+          required: false

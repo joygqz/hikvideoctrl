@@ -31,6 +31,7 @@
   - [React 集成](#react-集成)
 - [错误处理](#-错误处理)
 - [TypeScript 支持](#-typescript-支持)
+- [贡献与反馈](#-贡献与反馈)
 
 ## ✨ 特性
 
@@ -1580,3 +1581,38 @@ client.on('device:connected', (device) => {
   console.log(device.host)
 })
 ```
+
+## 🤝 贡献与反馈
+
+### 问题反馈
+
+如果您在使用过程中遇到任何问题或有功能建议，欢迎通过以下方式反馈：
+
+- 🐛 [提交 Issue](https://github.com/joygqz/hikvideoctrl/issues) - 报告 Bug 或提出功能需求
+- 💬 在 Issue 中描述问题时，请提供：
+  - 问题的详细描述
+  - 复现步骤
+  - 相关代码片段
+  - 错误信息或截图
+  - 环境信息（浏览器、Node.js 版本等）
+
+### 贡献代码
+
+欢迎提交 Pull Request 来帮助改进这个项目！
+
+1. Fork 本仓库
+2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启一个 Pull Request
+
+**贡献指南：**
+
+- 保持代码风格一致
+- 添加必要的注释和文档
+- 确保所有类型定义完整
+- 如有可能，添加相应的测试用例
+
+### Star 支持
+
+如果这个项目对您有帮助，欢迎给个 ⭐️ Star 支持一下！
