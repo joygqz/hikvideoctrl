@@ -1314,19 +1314,269 @@ catch (error) {
 
 ## 📖 TypeScript 支持
 
-库完全使用 TypeScript 编写，提供完整的类型定义：
+库完全使用 TypeScript 编写，提供完整的类型定义和智能提示：
 
 ```typescript
 import type {
+  CaptureOptions,
   ChannelInfo,
   DeviceCredentials,
+  DevicePort,
   DeviceSession,
+  DownloadByTimeOptions,
+  DownloadOptions,
   HikVideoClient,
   HikVideoEventMap,
+  HTTPRequestOptions,
   PlaybackOptions,
+  PluginInitOptions,
   PreviewOptions,
   PTZCommandOptions,
+  RecordingOptions,
+  RecordSearchOptions,
 } from 'hikvideoctrl'
+```
 
-// 所有类型都有完整的智能提示
+### 📋 完整类型定义说明
+
+#### `CaptureOptions`
+
+抓拍参数类型。
+
+```typescript
+interface CaptureOptions {
+  windowIndex?: number // 窗口索引
+  fileName?: string // 文件名（不含扩展名）
+  format?: 'jpg' | 'jpeg' | 'png' | 'bmp' // 图片格式
+  onData?: (data: Uint8Array) => void // 获取原始数据回调
+}
+```
+
+#### `ChannelInfo`
+
+通道信息类型。
+
+```typescript
+interface ChannelInfo {
+  id: string // 通道 ID
+  name: string // 通道名称
+  type: 'analog' | 'digital' | 'zero' // 通道类型
+  isZero: boolean // 是否为零通道
+  online: boolean // 是否在线
+}
+```
+
+#### `DeviceCredentials`
+
+设备登录凭证类型。
+
+```typescript
+interface DeviceCredentials {
+  host: string // 设备 IP 地址
+  port?: number // 端口，默认 80
+  username: string // 用户名
+  password: string // 密码
+  protocol?: 'http' | 'https' // 协议，默认 'http'
+}
+```
+
+#### `DevicePort`
+
+设备端口信息。
+
+```typescript
+interface DevicePort {
+  iDevicePort: number // 设备端口
+  iRtspPort: number // RTSP 端口
+}
+```
+
+#### `DeviceSession`
+
+已连接的设备会话信息。
+
+```typescript
+interface DeviceSession {
+  id: string // 设备唯一标识
+  host: string // 设备地址
+  port: number // 端口
+  username: string // 用户名
+  protocol: 'http' | 'https' // 协议
+}
+```
+
+#### `DownloadByTimeOptions`
+
+按时间段下载参数类型。
+
+```typescript
+interface DownloadByTimeOptions extends DownloadOptions {
+  fileName: string // 文件名
+  start: string // 开始时间
+  end: string // 结束时间
+}
+```
+
+#### `DownloadOptions`
+
+下载参数类型。
+
+```typescript
+interface DownloadOptions {
+  directoryByDate?: boolean // 是否按日期分目录
+}
+```
+
+#### `HTTPRequestOptions`
+
+HTTP 请求参数类型。
+
+```typescript
+interface HTTPRequestOptions {
+  type?: 'GET' | 'POST' | 'PUT' | 'DELETE' // 请求类型
+  data?: string // 请求数据
+  timeout?: number // 超时时间（毫秒）
+  async?: boolean // 是否异步
+  success?: (response?: unknown) => void // 成功回调
+  error?: (status?: number, xmlDoc?: Document, error?: unknown) => void // 失败回调
+}
+```
+
+#### `PlaybackOptions`
+
+录像回放参数类型。
+
+```typescript
+interface PlaybackOptions extends PreviewOptions {
+  start: string // 开始时间 'yyyy-MM-dd HH:mm:ss'
+  end: string // 结束时间 'yyyy-MM-dd HH:mm:ss'
+  transcode?: {
+    // 可选转码参数
+    frameRate?: string // 帧率
+    resolution?: string // 分辨率
+    bitrate?: string // 码率
+  }
+}
+```
+
+#### `PluginInitOptions`
+
+插件初始化参数类型。
+
+```typescript
+interface PluginInitOptions {
+  container: string | HTMLElement // 容器 ID 或 DOM 元素
+  width?: string | number // 宽度
+  height?: string | number // 高度
+  layout?: number // 窗口布局
+  noPlugin?: boolean // 无插件模式
+  debugMode?: boolean // 调试模式
+  enableDoubleClickFullScreen?: boolean // 双击全屏
+  onWindowSelect?: (windowIndex: number) => void // 窗口选中回调
+  onWindowDoubleClick?: (windowIndex: number, isFullScreen: boolean) => void // 窗口双击回调
+  onInitComplete?: () => void // 初始化完成回调
+  // ... 更多高级选项
+}
+```
+
+#### `PreviewOptions`
+
+实时预览参数类型。
+
+```typescript
+interface PreviewOptions {
+  channel: number // 通道号
+  windowIndex?: number // 窗口索引
+  streamType?: 1 | 2 // 码流类型：1-主码流，2-子码流
+  zeroChannel?: boolean // 是否为零通道
+  useProxy?: boolean // 是否使用代理
+  rtspPort?: number // RTSP 端口
+  onSuccess?: (result?: unknown) => void // 成功回调
+  onError?: (status?: number, xmlDoc?: Document, error?: unknown) => void // 失败回调
+}
+```
+
+#### `PTZCommandOptions`
+
+PTZ 控制参数类型。
+
+```typescript
+interface PTZCommandOptions {
+  action: number // PTZ 动作类型（使用 PTZControlType 常量）
+  speed?: number // 速度：1-7，默认 4
+  windowIndex?: number // 窗口索引
+}
+```
+
+#### `RecordingOptions`
+
+本地录像参数类型。
+
+```typescript
+interface RecordingOptions {
+  windowIndex?: number // 窗口索引
+  fileName?: string // 文件名（不含扩展名）
+  directoryByDate?: boolean // 是否按日期分目录
+}
+```
+
+#### `RecordSearchOptions`
+
+录像搜索参数类型。
+
+```typescript
+interface RecordSearchOptions {
+  channel: number // 通道号
+  start: string // 开始时间
+  end: string // 结束时间
+  streamType?: 1 | 2 // 码流类型
+  page?: number // 页码，每页 40 条
+}
+```
+
+#### `HikVideoEventMap`
+
+事件映射类型，用于类型安全的事件监听。
+
+```typescript
+interface HikVideoEventMap {
+  'plugin:initialized': void
+  'plugin:error': { windowIndex: number, errorCode: number, error: unknown }
+  'device:connected': DeviceSession
+  'preview:started': { deviceId: string, channel: number, windowIndex: number }
+  'recording:started': { fileName: string, windowIndex: number }
+  'capture:completed': { fileName: string, windowIndex: number, format: string }
+  // ... 更多事件类型
+}
+```
+
+### 💡 类型使用示例
+
+```typescript
+import type { DeviceSession, PreviewOptions } from 'hikvideoctrl'
+import { createHikVideoClient } from 'hikvideoctrl'
+
+const client = createHikVideoClient()
+
+// 类型推断
+const device: DeviceSession = await client.connectDevice({
+  host: '192.168.1.64',
+  username: 'admin',
+  password: 'admin123',
+})
+
+// 参数类型检查
+const previewOptions: PreviewOptions = {
+  channel: 1,
+  windowIndex: 0,
+  streamType: 2, // 类型安全：只能是 1 或 2
+}
+
+await client.startPreview(device.id, previewOptions)
+
+// 事件类型推断
+client.on('device:connected', (device) => {
+  // device 自动推断为 DeviceSession 类型
+  console.log(device.host)
+})
 ```
