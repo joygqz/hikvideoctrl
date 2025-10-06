@@ -1,43 +1,19 @@
-# HikVideoCtrl [![NPM Version](https://img.shields.io/npm/v/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl) [![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl)
+# HikVideoCtrl
 
-海康威视无插件视频播放 SDK 封装，支持 ESM 模块化，提供完整的 TypeScript API 和现代化开发体验。
+[![NPM Version](https://img.shields.io/npm/v/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl) [![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl)](https://www.npmjs.com/package/hikvideoctrl) [![License](https://img.shields.io/npm/l/hikvideoctrl)](https://github.com/joygqz/hikvideoctrl/blob/main/LICENSE)
+
+> 🎥 海康威视无插件视频播放 SDK 的现代化 TypeScript 封装库
+
+简洁、类型安全、开箱即用的海康威视 Web SDK 封装，让你 3 分钟接入海康监控视频。
 
 ## ✨ 特性
 
-- 🚀 **无插件播放** - 基于 WebSocket 和 Canvas 技术，无需安装插件
-- 📦 **ES Module** - 支持现代模块化导入
-- 🔒 **TypeScript** - 完整的类型定义，提供智能提示和类型检查
-- 🎯 **现代 API** - 提供基于 Promise 的异步 API，支持 async/await
-- 📱 **多浏览器支持** - 支持 Chrome 90+ 和 Firefox 90+
-- 🔧 **功能完整** - 支持实时预览、录像回放、PTZ控制、音频对讲等全部功能
-
-## 🚧 功能支持
-
-### 核心功能
-
-- ✅ 设备登录/登出
-- ✅ 实时视频预览
-- ✅ 录像搜索和回放
-- ✅ 录像下载（支持按时间段下载）
-- ✅ 本地录像和抓图
-- ✅ 音频播放/控制
-
-### 高级功能
-
-- ✅ PTZ 云台控制（方向、变焦、聚焦、光圈）
-- ✅ 预置点管理
-- ✅ 电子放大和3D定位
-- ✅ 全屏显示和多窗口切换
-- ✅ 事件监听和错误处理
-
-### 设备管理
-
-- ✅ 设备配置导入/导出
-- ✅ 设备重启和重连
-- ✅ 恢复出厂设置
-- ✅ 设备升级和进度监控
-- ✅ 文件对话框和HTTP请求
-- ✅ 文字叠加（OSD）管理
+- 🎯 **开箱即用** - 3 行代码即可开始预览
+- 📦 **TypeScript 支持** - 完整的类型定义和智能提示
+- 🚀 **现代化 API** - Promise 风格，符合直觉
+- 🎨 **ESM/CJS 双支持** - 适配各种构建工具
+- 🔐 **完整功能** - 设备管理、预览、回放、PTZ、录像等全覆盖
+- 📝 **事件系统** - 统一的事件监听机制
 
 ## 📦 安装
 
@@ -54,7 +30,7 @@ yarn add hikvideoctrl
 
 ## 🚀 快速开始
 
-### 导入基本库
+### 1. 导入海康官方基本库
 
 访问官网下载最新 WEB 无插件开发包，[下载页面](https://open.hikvision.com/download/5cda567cf47ae80dd41a54b3?type=10&id=6343bb4b03df46c39032d2ef825eb70d)
 
@@ -64,701 +40,1275 @@ yarn add hikvideoctrl
 <script src="/codebase/webVideoCtrl.js"></script>
 ```
 
-### 检查浏览器支持
+### 2. 三步开始预览
 
 ```typescript
-import { HikVideoController } from 'hikvideoctrl'
+import { createHikVideoClient } from 'hikvideoctrl'
 
-// 检查是否支持无插件模式
-if (!HikVideoController.isSupportNoPlugin()) {
-  console.error('浏览器不支持无插件模式')
-}
-```
+// 1️⃣ 创建客户端
+const client = createHikVideoClient()
 
-### 基本使用
-
-```typescript
-// 使用默认导入
-import HikVideoController from 'hikvideoctrl'
-// 或者使用命名导入
-// import { HikVideoController } from 'hikvideoctrl'
-
-// 创建控制器实例
-const controller = new HikVideoController()
-
-async function initAndPlay() {
-  try {
-    // 1. 初始化插件
-    await controller.initPlugin({
-      containerId: 'video-container', // 视频容器 ID
-      width: '100%',
-      height: '100%',
-      windowType: 1, // 单窗口
-      onError: (windowIndex, errorCode, error) => {
-        console.error('播放错误:', errorCode, error)
-      }
-    })
-
-    // 2. 登录设备
-    await controller.login({
-      ip: '192.168.1.101',
-      port: 8000,
-      username: 'admin',
-      password: 'password123'
-    })
-
-    // 3. 开始预览
-    await controller.startPreview({
-      deviceId: '192.168.1.100_8000',
-      channelId: 1,
-      streamType: 1 // 主码流
-    })
-
-    console.log('视频播放成功')
-  }
-  catch (error) {
-    console.error('操作失败:', error)
-  }
-}
-
-initAndPlay()
-```
-
-### HTML 容器
-
-```html
-<div id="video-container" style="width: 800px; height: 600px"></div>
-```
-
-## 📖 详细使用说明
-
-### 设备管理
-
-#### 登录设备
-
-```typescript
-await controller.login({
-  ip: '192.168.1.100', // 设备 IP 地址
-  port: 8000, // HTTP 端口，默认 80
-  username: 'admin', // 用户名
-  password: 'password123', // 密码
-  protocol: 1 // 协议版本，默认 1
+// 2️⃣ 初始化插件
+await client.initialize({
+  container: '#video-container', // 视频容器
+  width: 1000,
+  height: 600,
+  layout: 4, // 4 窗口布局
 })
-```
 
-#### 获取设备信息
+// 3️⃣ 连接设备并预览
+const device = await client.connectDevice({
+  host: '192.168.1.64',
+  username: 'admin',
+  password: 'admin123',
+})
 
-```typescript
-const deviceId = '192.168.1.100_8000'
-const deviceInfo = await controller.getDeviceInfo(deviceId)
-console.log('设备信息:', deviceInfo)
-```
-
-#### 获取通道列表
-
-```typescript
-const channels = await controller.getChannels(deviceId)
-console.log('通道列表:', channels)
-```
-
-#### 登出设备
-
-```typescript
-await controller.logout(deviceId)
-```
-
-### 视频播放
-
-#### 实时预览
-
-```typescript
-await controller.startPreview({
-  deviceId: '192.168.1.100_8000',
-  channelId: 1,
-  streamType: 1, // 1-主码流, 2-子码流
+await client.startPreview(device.id, {
+  channel: 1, // 通道号
   windowIndex: 0, // 窗口索引
-  isZeroChannel: false, // 是否零通道
-  useProxy: false // 是否使用代理
 })
 ```
 
-#### 停止预览
+就这么简单！🎉
+
+## 📚 完整 API 文档
+
+### 核心客户端
+
+#### `createHikVideoClient()`
+
+创建海康视频客户端实例。
+
+```typescript
+import { createHikVideoClient } from 'hikvideoctrl'
+
+const client = createHikVideoClient()
+```
+
+### 🔧 初始化与配置
+
+#### `initialize(options)`
+
+初始化视频插件（必须首先调用）。
+
+```typescript
+await client.initialize({
+  container: '#video-container', // 容器选择器或 DOM 元素
+  width: 1000, // 宽度（像素或百分比字符串）
+  height: 600, // 高度
+  layout: 4, // 窗口布局：1/4/9/16
+  noPlugin: true, // 使用无插件模式（默认 true）
+  debugMode: false, // 调试模式
+  enableDoubleClickFullScreen: true, // 双击全屏
+
+  // 可选回调
+  onWindowSelect: (index) => {
+    console.log('选中窗口', index)
+  },
+  onWindowDoubleClick: (index, isFullScreen) => {
+    console.log('双击窗口', index, isFullScreen)
+  },
+  onInitComplete: () => {
+    console.log('初始化完成')
+  },
+})
+```
+
+**参数说明：**
+
+| 参数                          | 类型                    | 必填 | 说明                          |
+| ----------------------------- | ----------------------- | ---- | ----------------------------- |
+| `container`                   | `string \| HTMLElement` | ✅   | 视频容器选择器或 DOM 元素     |
+| `width`                       | `string \| number`      | ❌   | 宽度，默认 1000               |
+| `height`                      | `string \| number`      | ❌   | 高度，默认 600                |
+| `layout`                      | `number`                | ❌   | 窗口布局：1/4/9/16，默认 1    |
+| `noPlugin`                    | `boolean`               | ❌   | 是否使用无插件模式，默认 true |
+| `debugMode`                   | `boolean`               | ❌   | 是否开启调试模式              |
+| `enableDoubleClickFullScreen` | `boolean`               | ❌   | 是否启用双击全屏              |
+| `onWindowSelect`              | `function`              | ❌   | 窗口选中回调                  |
+| `onWindowDoubleClick`         | `function`              | ❌   | 窗口双击回调                  |
+| `onInitComplete`              | `function`              | ❌   | 初始化完成回调                |
+
+### 📡 设备管理
+
+#### `connectDevice(credentials)`
+
+连接海康设备。
+
+```typescript
+const device = await client.connectDevice({
+  host: '192.168.1.64', // 设备 IP
+  port: 80, // 端口，默认 80
+  username: 'admin', // 用户名
+  password: 'admin123', // 密码
+  protocol: 'http', // 协议：'http' | 'https'
+})
+
+console.log('设备ID:', device.id)
+console.log('设备地址:', device.host)
+```
+
+**返回值：** `DeviceSession`
+
+```typescript
+interface DeviceSession {
+  id: string // 设备唯一标识
+  host: string // 设备地址
+  port: number // 端口
+  username: string // 用户名
+  protocol: 'http' | 'https' // 协议
+}
+```
+
+#### `disconnectDevice(deviceId)`
+
+断开设备连接。
+
+```typescript
+await client.disconnectDevice(device.id)
+```
+
+#### `listDevices()`
+
+获取所有已连接设备列表。
+
+```typescript
+const devices = client.listDevices()
+devices.forEach((dev) => {
+  console.log(`设备: ${dev.host}:${dev.port}`)
+})
+```
+
+#### `getDevice(deviceId)`
+
+获取指定设备信息。
+
+```typescript
+const device = client.getDevice(deviceId)
+if (device) {
+  console.log('设备已连接:', device.host)
+}
+```
+
+#### `getDeviceInfo(deviceId)`
+
+获取设备详细信息（XML 格式）。
+
+```typescript
+const xmlDoc = await client.getDeviceInfo(device.id)
+const deviceName = xmlDoc.querySelector('deviceName')?.textContent
+const model = xmlDoc.querySelector('model')?.textContent
+console.log('设备名称:', deviceName)
+console.log('设备型号:', model)
+```
+
+#### `getDevicePort(deviceId)`
+
+获取设备端口信息。
+
+```typescript
+const portInfo = client.getDevicePort(device.id)
+console.log('设备端口:', portInfo.iDevicePort)
+console.log('RTSP 端口:', portInfo.iRtspPort)
+```
+
+**返回值：**
+
+```typescript
+interface DevicePort {
+  iDevicePort: number // 设备端口
+  iRtspPort: number // RTSP 端口
+}
+```
+
+#### `getChannels(deviceId)`
+
+获取设备所有通道信息。
+
+```typescript
+const channels = await client.getChannels(device.id)
+channels.forEach((ch) => {
+  console.log(`通道 ${ch.id}: ${ch.name} [${ch.type}] ${ch.online ? '在线' : '离线'}`)
+})
+```
+
+**返回值：** `ChannelInfo[]`
+
+```typescript
+interface ChannelInfo {
+  id: string // 通道 ID
+  name: string // 通道名称
+  type: 'analog' | 'digital' | 'zero' // 通道类型
+  isZero: boolean // 是否为零通道
+  online: boolean // 是否在线
+}
+```
+
+#### `getAudioInfo(deviceId)`
+
+获取音频信息。
+
+```typescript
+const audioDoc = await client.getAudioInfo(device.id)
+```
+
+#### `restartDevice(deviceId)`
+
+重启设备。
+
+```typescript
+await client.restartDevice(device.id)
+```
+
+#### `reconnectDevice(deviceId)`
+
+重新连接设备。
+
+```typescript
+await client.reconnectDevice(device.id)
+```
+
+#### `exportDeviceConfig(deviceId, password)`
+
+导出设备配置。
+
+```typescript
+await client.exportDeviceConfig(device.id, 'config_password')
+```
+
+#### `importDeviceConfig(deviceId, fileName, password, file)`
+
+导入设备配置。
+
+```typescript
+const file = document.querySelector('input[type="file"]').files[0]
+await client.importDeviceConfig(device.id, 'config.bin', 'config_password', file)
+```
+
+#### `restoreDeviceDefault(deviceId, mode)`
+
+恢复设备出厂设置。
+
+```typescript
+// 基本恢复
+await client.restoreDeviceDefault(device.id, 'basic')
+
+// 完全恢复
+await client.restoreDeviceDefault(device.id, 'full')
+```
+
+#### `startUpgrade(deviceId, fileName, file)`
+
+设备固件升级。
+
+```typescript
+const file = document.querySelector('input[type="file"]').files[0]
+await client.startUpgrade(device.id, 'firmware.bin', file)
+```
+
+#### `getUpgradeProgress(deviceId)`
+
+获取升级进度。
+
+```typescript
+const progress = await client.getUpgradeProgress(device.id)
+console.log('升级进度:', `${progress.percent}%`)
+console.log('升级中:', progress.upgrading)
+```
+
+### 📹 视频预览
+
+#### `startPreview(deviceId, options)`
+
+开始实时预览。
+
+```typescript
+await client.startPreview(device.id, {
+  channel: 1, // 通道号
+  windowIndex: 0, // 窗口索引（0-15）
+  streamType: 1, // 码流类型：1-主码流，2-子码流
+  zeroChannel: false, // 是否为零通道
+
+  // 可选回调
+  onSuccess: () => {
+    console.log('预览成功')
+  },
+  onError: (status, xmlDoc, error) => {
+    console.error('预览失败', error)
+  },
+})
+```
+
+**参数说明：**
+
+| 参数          | 类型       | 必填 | 说明                       |
+| ------------- | ---------- | ---- | -------------------------- |
+| `channel`     | `number`   | ✅   | 通道号                     |
+| `windowIndex` | `number`   | ❌   | 窗口索引，默认当前选中窗口 |
+| `streamType`  | `1 \| 2`   | ❌   | 1-主码流，2-子码流，默认 1 |
+| `zeroChannel` | `boolean`  | ❌   | 是否为零通道，默认 false   |
+| `useProxy`    | `boolean`  | ❌   | 是否使用代理               |
+| `rtspPort`    | `number`   | ❌   | RTSP 端口                  |
+| `onSuccess`   | `function` | ❌   | 成功回调                   |
+| `onError`     | `function` | ❌   | 失败回调                   |
+
+#### `stopPreview(windowIndex?)`
+
+停止预览。
 
 ```typescript
 // 停止指定窗口
-await controller.stopPreview(0)
+await client.stopPreview(0)
 
-// 停止所有预览
-await controller.stopAllPreview()
+// 停止当前窗口
+await client.stopPreview()
 ```
 
-#### 录像回放
+#### `stopAllPreview()`
+
+停止所有预览。
 
 ```typescript
-await controller.startPlayback({
-  deviceId: '192.168.1.100_8000',
-  channelId: 1,
-  startTime: '2024-01-01 00:00:00',
-  endTime: '2024-01-01 23:59:59',
+await client.stopAllPreview()
+```
+
+### ⏯️ 视频回放
+
+#### `startPlayback(deviceId, options)`
+
+开始录像回放。
+
+```typescript
+await client.startPlayback(device.id, {
+  channel: 1,
+  windowIndex: 0,
+  start: '2024-01-01 00:00:00', // 开始时间
+  end: '2024-01-01 23:59:59', // 结束时间
   streamType: 1,
-  windowIndex: 0
+
+  // 可选转码参数
+  transcode: {
+    frameRate: '25', // 帧率
+    resolution: '1', // 分辨率
+    bitrate: '2048', // 码率
+  },
 })
 ```
 
-#### 回放控制
+#### `stopPlayback(windowIndex?)`
+
+停止回放。
 
 ```typescript
-// 暂停回放
-await controller.pausePlayback()
-
-// 恢复回放
-await controller.resumePlayback()
-
-// 快进
-await controller.playFast()
-
-// 慢放
-await controller.playSlow()
+await client.stopPlayback(0)
 ```
 
-### 录像管理
+#### `pausePlayback(windowIndex?)`
 
-#### 搜索录像
+暂停回放。
 
 ```typescript
-const records = await controller.searchRecord({
-  deviceId: '192.168.1.100_8000',
-  channelId: 1,
-  startTime: '2024-01-01 00:00:00',
-  endTime: '2024-01-01 23:59:59',
-  streamType: 1
-})
-
-console.log('录像文件:', records)
+await client.pausePlayback()
 ```
 
-#### 下载录像
+#### `resumePlayback(windowIndex?)`
+
+恢复回放。
 
 ```typescript
-// 下载整个录像文件
-await controller.startDownloadRecord(
-  deviceId,
-  playbackURI,
-  'recording.mp4',
-  { bDateDir: true }
-)
-
-// 按时间段下载
-await controller.startDownloadRecordByTime(
-  deviceId,
-  playbackURI,
-  'recording_part.mp4',
-  '2024-01-01 10:00:00',
-  '2024-01-01 11:00:00',
-  { bDateDir: true }
-)
+await client.resumePlayback()
 ```
 
-#### 本地录像
+#### `playFast(windowIndex?)`
+
+快进播放。
 
 ```typescript
-// 开始录像
-await controller.startRecord({
-  fileName: 'local_record',
-  useDateDir: true
-})
-
-// 停止录像
-await controller.stopRecord()
+await client.playFast()
 ```
 
-### PTZ 控制
+#### `playSlow(windowIndex?)`
 
-#### 方向控制
+慢放播放。
+
+```typescript
+await client.playSlow()
+```
+
+### 🔊 音频控制
+
+#### `openSound(windowIndex?)`
+
+打开声音。
+
+```typescript
+await client.openSound(0)
+```
+
+#### `closeSound(windowIndex?)`
+
+关闭声音。
+
+```typescript
+await client.closeSound(0)
+```
+
+#### `setVolume(volume, windowIndex?)`
+
+设置音量。
+
+```typescript
+// 音量范围：0-100
+await client.setVolume(50, 0)
+```
+
+### 🎮 PTZ 云台控制
+
+#### `ptzControl(options, stop?)`
+
+PTZ 云台控制。
 
 ```typescript
 import { PTZControlType } from 'hikvideoctrl'
 
-// 向上移动
-await controller.ptzControl({
-  ptzIndex: PTZControlType.Up,
-  speed: 4
-})
-
-// 停止移动
-await controller.ptzControl({
-  ptzIndex: PTZControlType.Up,
-  speed: 4
-}, true) // 第二个参数为 true 表示停止
-```
-
-#### 变焦控制
-
-```typescript
-// 放大
-await controller.ptzControl({
-  ptzIndex: PTZControlType.ZoomIn,
-  speed: 4
-})
-
-// 缩小
-await controller.ptzControl({
-  ptzIndex: PTZControlType.ZoomOut,
-  speed: 4
-})
-```
-
-#### 预置点管理
-
-```typescript
-// 设置预置点
-await controller.setPreset(1) // 预置点 1
-
-// 调用预置点
-await controller.goPreset(1)
-```
-
-### 图像功能
-
-#### 抓图
-
-```typescript
-await controller.capturePicture({
+// 开始上移
+await client.ptzControl({
+  action: PTZControlType.Up, // 控制动作
+  speed: 5, // 速度：1-7
   windowIndex: 0,
-  fileName: 'snapshot',
-  format: 'jpg', // jpg, jpeg, png, bmp
-  callback: (imageData: Uint8Array) => {
-    console.log('抓图数据:', imageData)
+})
+
+// 停止上移
+await client.ptzControl({
+  action: PTZControlType.Up,
+}, true)
+```
+
+**PTZ 控制类型：**
+
+```typescript
+PTZControlType.Up // 上
+PTZControlType.Down // 下
+PTZControlType.Left // 左
+PTZControlType.Right // 右
+PTZControlType.UpLeft // 左上
+PTZControlType.UpRight // 右上
+PTZControlType.DownLeft // 左下
+PTZControlType.DownRight // 右下
+PTZControlType.Auto // 自动
+PTZControlType.ZoomIn // 放大
+PTZControlType.ZoomOut // 缩小
+PTZControlType.FocusIn // 聚焦+
+PTZControlType.FocusOut // 聚焦-
+PTZControlType.IrisIn // 光圈+
+PTZControlType.IrisOut // 光圈-
+```
+
+#### `ptzStart(options)`
+
+开始 PTZ 控制。
+
+```typescript
+await client.ptzStart({
+  action: PTZControlType.Right,
+  speed: 5,
+})
+```
+
+#### `ptzStop(action, windowIndex?)`
+
+停止 PTZ 控制。
+
+```typescript
+await client.ptzStop(PTZControlType.Right, 0)
+```
+
+#### `setPreset(preset, windowIndex?)`
+
+设置预置点。
+
+```typescript
+// 设置预置点 1
+await client.setPreset(1, 0)
+```
+
+#### `goPreset(preset, windowIndex?)`
+
+调用预置点。
+
+```typescript
+// 转到预置点 1
+await client.goPreset(1, 0)
+```
+
+### 📼 录像与抓拍
+
+#### `searchRecords(deviceId, options)`
+
+搜索录像文件。
+
+```typescript
+const result = await client.searchRecords(device.id, {
+  channel: 1,
+  start: '2024-01-01 00:00:00',
+  end: '2024-01-01 23:59:59',
+  streamType: 1,
+  page: 1, // 页码，每页 40 条
+})
+
+// 解析录像列表
+const files = result.querySelectorAll('searchMatchItem')
+files.forEach((file) => {
+  const playbackUri = file.querySelector('playbackURI')?.textContent
+  const startTime = file.querySelector('startTime')?.textContent
+  const endTime = file.querySelector('endTime')?.textContent
+  console.log('录像片段:', startTime, '-', endTime)
+})
+```
+
+#### `startRecording(options)`
+
+开始本地录像。
+
+```typescript
+const fileName = await client.startRecording({
+  windowIndex: 0,
+  fileName: 'record_001', // 可选，不填自动生成
+  directoryByDate: true, // 按日期分目录
+})
+
+console.log('录像文件:', fileName)
+```
+
+#### `stopRecording(windowIndex?)`
+
+停止录像。
+
+```typescript
+await client.stopRecording(0)
+```
+
+#### `capture(options?)`
+
+抓拍截图。
+
+```typescript
+const fileName = await client.capture({
+  windowIndex: 0,
+  fileName: 'capture_001', // 可选
+  format: 'jpg', // 格式：jpg/jpeg/png/bmp
+
+  // 可选：获取原始数据
+  onData: (data) => {
+    console.log('图片数据:', data)
+  },
+})
+
+console.log('截图文件:', fileName)
+```
+
+#### `downloadRecord(deviceId, playbackUri, fileName, options?)`
+
+下载录像文件。
+
+```typescript
+const handleId = await client.downloadRecord(
+  device.id,
+  'playbackURI', // 从搜索结果中获取
+  'download_001',
+  {
+    directoryByDate: true, // 按日期分目录
   }
-})
+)
+
+console.log('下载句柄:', handleId)
 ```
 
-#### 电子放大
+#### `downloadRecordByTime(deviceId, playbackUri, options)`
+
+按时间段下载录像。
 
 ```typescript
-// 启用电子放大
-await controller.enableEZoom()
-
-// 禁用电子放大
-await controller.disableEZoom()
+const handleId = await client.downloadRecordByTime(
+  device.id,
+  'playbackURI',
+  {
+    fileName: 'download_001',
+    start: '2024-01-01 10:00:00',
+    end: '2024-01-01 11:00:00',
+    directoryByDate: true,
+  }
+)
 ```
 
-#### 3D定位
+### 🖼️ 画面控制
+
+#### `toggleFullScreen(enable?)`
+
+切换全屏模式。
 
 ```typescript
-// 启用 3D 定位
-await controller.enable3DZoom(0, (zoomInfo) => {
-  console.log('3D 定位信息:', zoomInfo)
-})
+// 进入全屏
+client.toggleFullScreen(true)
 
-// 禁用 3D 定位
-controller.disable3DZoom()
+// 退出全屏
+client.toggleFullScreen(false)
 ```
 
-### 音频控制
+#### `changeWindowLayout(layout)`
 
-#### 打开/关闭音频
-
-```typescript
-// 打开音频
-await controller.openSound()
-
-// 关闭音频
-await controller.closeSound()
-
-// 设置音量 (0-100)
-await controller.setVolume(50)
-```
-
-### 窗口管理
-
-#### 切换窗口数量
+切换窗口布局。
 
 ```typescript
 import { WindowType } from 'hikvideoctrl'
 
-// 切换为 4 窗口
-await controller.changeWindowCount(WindowType.Four)
+// 切换到 4 窗口
+client.changeWindowLayout(WindowType.Four)
 
-// 切换为 9 窗口
-await controller.changeWindowCount(WindowType.Nine)
+// 可选值：
+// WindowType.Single (1)     - 单窗口
+// WindowType.Four (4)       - 四窗口
+// WindowType.Nine (9)       - 九窗口
+// WindowType.Sixteen (16)   - 十六窗口
 ```
 
-#### 全屏显示
+#### `enableEZoom(windowIndex?)`
+
+启用电子放大。
 
 ```typescript
-controller.fullScreen()
+await client.enableEZoom(0)
 ```
 
-### 事件监听
+#### `disableEZoom(windowIndex?)`
+
+禁用电子放大。
 
 ```typescript
-// 监听窗口选择事件
-controller.on('windowSelect', (windowIndex) => {
-  console.log('选择窗口:', windowIndex)
-})
-
-// 监听播放错误事件
-controller.on('error', (data) => {
-  console.error('播放错误:', data.errorCode, data.message)
-})
-
-// 监听预览开始事件
-controller.on('previewStart', (data) => {
-  console.log('预览开始:', data)
-})
-
-// 监听回放结束事件
-controller.on('playbackEnd', (windowIndex) => {
-  console.log('回放结束:', windowIndex)
-})
-
-// 监听登录成功事件
-controller.on('loginSuccess', (data) => {
-  console.log('设备登录成功:', data.deviceId)
-})
-
-// 移除事件监听
-controller.off('windowSelect')
+await client.disableEZoom(0)
 ```
 
-### 设备配置管理
+#### `enable3DZoom(windowIndex?, callback?)`
 
-#### 导出/导入设备配置
+启用 3D 定位。
 
 ```typescript
-// 导出设备配置
-await controller.exportDeviceConfig(deviceId, 'admin123')
-
-// 导入设备配置
-const file = new File(['config data'], 'device_config.xml')
-await controller.importDeviceConfig(deviceId, 'config.xml', 'admin123', file)
-```
-
-#### 设备重启和重连
-
-```typescript
-// 重启设备
-await controller.restart(deviceId, {
-  timeout: 30000,
-  success: () => console.log('重启成功'),
-  error: status => console.error('重启失败:', status)
+await client.enable3DZoom(0, (info) => {
+  console.log('3D 定位信息:', info)
 })
-
-// 重新连接设备
-await controller.reconnect(deviceId)
 ```
 
-#### 恢复出厂设置
+#### `disable3DZoom(windowIndex?)`
+
+禁用 3D 定位。
 
 ```typescript
-// 基础恢复
-await controller.restoreDefault(deviceId, 'basic')
-
-// 完全恢复
-await controller.restoreDefault(deviceId, 'full', { timeout: 60000 })
+client.disable3DZoom(0)
 ```
 
-#### 设备升级
+#### `getWindowStatus(windowIndex?)`
+
+获取窗口状态。
 
 ```typescript
-// 开始升级
-const upgradeFile = new File(['firmware data'], 'firmware.dav')
-await controller.startUpgrade(deviceId, 'firmware.dav', upgradeFile)
-
-// 获取升级进度
-const progress = await controller.getUpgradeProgress(deviceId)
-console.log(`升级进度: ${progress.percent}%`)
+const status = client.getWindowStatus(0)
+console.log('窗口状态:', status)
 ```
 
-### 文件和HTTP操作
+#### `getWindowSet()`
 
-#### 文件选择对话框
+获取所有窗口信息。
+
+```typescript
+const windows = client.getWindowSet()
+windows.forEach((wnd) => {
+  console.log(`窗口 ${wnd.iIndex}:`, wnd)
+})
+```
+
+### ⚙️ 高级配置
+
+#### `setSecretKey(secretKey, windowIndex?)`
+
+设置视频加密密钥。
+
+```typescript
+await client.setSecretKey('your-secret-key', 0)
+```
+
+#### `getOSDTime(windowIndex?)`
+
+获取视频 OSD 时间。
+
+```typescript
+const osdTime = await client.getOSDTime(0)
+console.log('OSD 时间:', osdTime)
+```
+
+#### `getLocalConfig()`
+
+获取本地配置。
+
+```typescript
+const config = client.getLocalConfig()
+console.log('本地配置:', config)
+```
+
+#### `setLocalConfig(config)`
+
+设置本地配置。
+
+```typescript
+const success = client.setLocalConfig('config_string')
+console.log('配置设置:', success ? '成功' : '失败')
+```
+
+#### `openFileDialog(type)`
+
+打开文件选择对话框。
 
 ```typescript
 // 选择文件
-const { szFileName, file } = await controller.openFileDlg(1)
+const { szFileName, file } = await client.openFileDialog(1)
 
 // 选择文件夹
-const folderInfo = await controller.openFileDlg(0)
+const { szFileName } = await client.openFileDialog(0)
 ```
 
-#### HTTP请求
+#### `sendHTTPRequest(deviceId, url, options?)`
+
+发送 HTTP 请求到设备。
 
 ```typescript
-// 发送 HTTP 请求
-const response = await controller.sendHTTPRequest(deviceId, '/ISAPI/System/deviceInfo', {
-  type: 'GET',
-  async: true
-})
-```
-
-#### 文字叠加（OSD）
-
-```typescript
-// 获取 OSD 配置
-const overlay = await controller.getTextOverlay(
-  'ISAPI/System/Video/inputs/channels/1/overlays',
-  deviceId
+const response = await client.sendHTTPRequest(
+  device.id,
+  '/ISAPI/System/deviceInfo',
+  {
+    type: 'GET',
+    timeout: 5000,
+  }
 )
 ```
 
-### 本地配置管理
+#### `getTextOverlay(deviceId, url, options?)`
+
+获取文字叠加信息。
 
 ```typescript
-// 获取本地配置
-const config = controller.getLocalConfig()
-
-// 设置本地配置
-const xmlConfig = `
-<LocalConfigInfo>
-  <PackgeSize>1024</PackgeSize>
-  <PlayWndType>1</PlayWndType>
-  <BuffNumberType>4</BuffNumberType>
-</LocalConfigInfo>`
-controller.setLocalConfig(xmlConfig)
+const overlay = await client.getTextOverlay(
+  device.id,
+  '/ISAPI/System/Video/inputs/channels/1/overlays',
+)
 ```
 
-### 窗口管理
+### 📡 事件系统
+
+#### `on(event, handler)`
+
+监听事件。
 
 ```typescript
-// 获取所有窗口状态
-const windowSet = controller.getWndSet()
-console.log('窗口信息:', windowSet)
+// 监听设备连接
+const unsubscribe = client.on('device:connected', (device) => {
+  console.log('设备已连接:', device.host)
+})
 
-// 获取指定窗口状态
-const windowStatus = controller.getWindowStatus(0)
-console.log('窗口状态:', windowStatus)
+// 取消监听
+unsubscribe()
 ```
 
-### 工具函数
+#### `off(event, handler?)`
+
+取消监听。
+
+```typescript
+const handler = device => console.log(device)
+client.on('device:connected', handler)
+
+// 取消特定处理器
+client.off('device:connected', handler)
+
+// 取消所有处理器
+client.off('device:connected')
+```
+
+**所有事件类型：**
+
+| 事件名称                  | 参数                                              | 说明           |
+| ------------------------- | ------------------------------------------------- | -------------- |
+| `plugin:initialized`      | `void`                                            | 插件初始化完成 |
+| `plugin:error`            | `{ windowIndex, errorCode, error }`               | 插件错误       |
+| `plugin:performance-lack` | `void`                                            | 性能不足       |
+| `plugin:secret-key-error` | `{ windowIndex }`                                 | 密钥错误       |
+| `plugin:event`            | `{ eventType, param1, param2 }`                   | 通用事件       |
+| `window:selected`         | `{ index }`                                       | 窗口被选中     |
+| `window:dblclick`         | `{ index, isFullScreen }`                         | 窗口双击       |
+| `device:connected`        | `DeviceSession`                                   | 设备连接成功   |
+| `device:disconnected`     | `{ deviceId }`                                    | 设备断开连接   |
+| `preview:started`         | `{ deviceId, channel, windowIndex, zeroChannel }` | 预览开始       |
+| `preview:stopped`         | `{ deviceId, windowIndex }`                       | 预览停止       |
+| `preview:stopped-all`     | `void`                                            | 所有预览停止   |
+| `playback:started`        | `{ deviceId, channel, windowIndex, start, end }`  | 回放开始       |
+| `playback:stopped`        | `{ deviceId, windowIndex }`                       | 回放停止       |
+| `recording:started`       | `{ fileName, windowIndex }`                       | 录像开始       |
+| `recording:stopped`       | `{ windowIndex }`                                 | 录像停止       |
+| `capture:completed`       | `{ fileName, windowIndex, format }`               | 截图完成       |
+
+### 🔍 工具函数
+
+库还导出了一些实用工具函数：
 
 ```typescript
 import {
-  createResponseHandler,
   delay,
-  encodeString,
   formatDate,
-  generateDeviceIdentify,
   generateUniqueFileName,
   getCurrentTimeString,
   getTodayTimeRange,
-  getWindowSize,
   isValidIP,
   isValidPort,
   isValidTimeRange,
-  loadXML,
-  parseDeviceIdentify,
-  promisify,
-  toXMLString,
-  uint8ArrayToBase64
 } from 'hikvideoctrl'
 
-// 格式化时间
-const timeStr = formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss')
+// 时间格式化
+const timeStr = formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss')
 
-// 获取当前时间字符串
+// 获取当前时间
 const now = getCurrentTimeString()
 
 // 获取今天的时间范围
-const { startTime, endTime } = getTodayTimeRange()
-
-// 生成设备标识
-const deviceId = generateDeviceIdentify('192.168.1.100', 8000)
-
-// 解析设备标识
-const { ip, port } = parseDeviceIdentify('192.168.1.100_8000')
-
-// IP 和端口验证
-const isValidIPAddress = isValidIP('192.168.1.100')
-const isValidPortNumber = isValidPort(8000)
+const { start, end } = getTodayTimeRange()
 
 // 生成唯一文件名
-const fileName = generateUniqueFileName('capture', 'jpg')
+const fileName = generateUniqueFileName('record', 'mp4')
 
-// 验证时间范围
-const isValidRange = isValidTimeRange('2024-01-01 00:00:00', '2024-01-01 23:59:59')
+// IP 验证
+const valid = isValidIP('192.168.1.1')
 
-// 延迟执行
+// 端口验证
+const portValid = isValidPort(8080)
+
+// 时间范围验证
+const rangeValid = isValidTimeRange('2024-01-01 00:00:00', '2024-01-01 23:59:59')
+
+// 延迟
 await delay(1000)
-
-// 获取窗口尺寸
-const { width, height } = getWindowSize()
-
-// 将 Uint8Array 转换为 Base64
-const base64 = await uint8ArrayToBase64(imageData)
-
-// 加载 XML
-const xmlDoc = loadXML(xmlString)
-
-// 转换为 XML 字符串
-const xmlStr = toXMLString(xmlDoc)
-
-// HTML 实体编码
-const encoded = encodeString('<div>content</div>')
-
-// Promise 化函数
-const result = await promisify(someFunction, arg1, arg2)
-
-// 创建响应处理器
-const handler = createResponseHandler(
-  data => console.log('成功', data),
-  (status, xmlDoc, error) => console.error('失败', status, error)
-)
 ```
 
-## 🔧 配置选项
-
-### InitOptions
+### 📊 常量定义
 
 ```typescript
-interface InitOptions {
-  containerId: string // 容器元素 ID
-  width?: string // 宽度，默认 '100%'
-  height?: string // 高度，默认 '100%'
-  windowType?: number // 窗口类型，默认 1 (单窗口)
-  packageType?: number // 包类型，默认 2
-  noPlugin?: boolean // 是否无插件模式，默认 true
-  onWindowSelect?: (windowIndex: number) => void
-  onWindowDoubleClick?: (windowIndex: number, isFullScreen: boolean) => void
-  onEvent?: (eventType: number, param1: number, param2: number) => void
-  onError?: (windowIndex: number, errorCode: number, error: any) => void
-  onPerformanceLack?: () => void
-  onSecretKeyError?: (windowIndex: number) => void
+import {
+  DefaultPorts,
+  ErrorCodes,
+  FileFormat,
+  PTZControlType,
+  StreamType,
+  WindowType,
+} from 'hikvideoctrl'
+
+// 码流类型
+StreamType.MainStream // 1 - 主码流
+StreamType.SubStream // 2 - 子码流
+
+// 窗口布局
+WindowType.Single // 1
+WindowType.Four // 4
+WindowType.Nine // 9
+WindowType.Sixteen // 16
+
+// 文件格式
+FileFormat.JPG // 'jpg'
+FileFormat.JPEG // 'jpeg'
+FileFormat.PNG // 'png'
+FileFormat.BMP // 'bmp'
+
+// 默认端口
+DefaultPorts.HTTP // 80
+DefaultPorts.HTTPS // 443
+DefaultPorts.RTSP // 554
+
+// 错误码映射
+ErrorCodes[1001] // '码流传输过程异常'
+```
+
+### 🎯 实用属性
+
+```typescript
+// 是否已初始化
+if (client.isInitialized) {
+  console.log('插件已初始化')
+}
+
+// 当前活动窗口索引
+const activeIndex = client.activeWindow
+
+// 检查是否支持无插件模式
+if (client.supportsNoPlugin()) {
+  console.log('支持无插件模式')
 }
 ```
 
-### DeviceInfo
+## 💡 实战示例
+
+### 完整的监控页面
 
 ```typescript
-interface DeviceInfo {
-  ip: string // 设备 IP 地址
-  port: number // 设备端口
-  username: string // 用户名
-  password: string // 密码
-  protocol?: number // 协议版本，默认 1
+import { createHikVideoClient, PTZControlType, WindowType } from 'hikvideoctrl'
+
+class VideoMonitor {
+  private client = createHikVideoClient()
+  private deviceId?: string
+
+  async init() {
+    // 初始化
+    await this.client.initialize({
+      container: '#video-container',
+      width: 1200,
+      height: 800,
+      layout: WindowType.Four,
+      onWindowSelect: (index) => {
+        console.log('选中窗口', index)
+      },
+    })
+
+    // 连接设备
+    const device = await this.client.connectDevice({
+      host: '192.168.1.64',
+      username: 'admin',
+      password: 'admin123',
+    })
+    this.deviceId = device.id
+
+    // 监听事件
+    this.setupEventListeners()
+  }
+
+  setupEventListeners() {
+    this.client.on('preview:started', ({ channel, windowIndex }) => {
+      console.log(`通道 ${channel} 在窗口 ${windowIndex} 开始预览`)
+    })
+
+    this.client.on('plugin:error', ({ windowIndex, errorCode, error }) => {
+      console.error(`窗口 ${windowIndex} 错误 ${errorCode}:`, error)
+    })
+  }
+
+  // 开始预览
+  async startPreview(channel: number, windowIndex: number) {
+    if (!this.deviceId)
+      return
+
+    await this.client.startPreview(this.deviceId, {
+      channel,
+      windowIndex,
+      streamType: 2, // 使用子码流
+    })
+  }
+
+  // PTZ 控制
+  async moveCamera(direction: 'up' | 'down' | 'left' | 'right') {
+    const actionMap = {
+      up: PTZControlType.Up,
+      down: PTZControlType.Down,
+      left: PTZControlType.Left,
+      right: PTZControlType.Right,
+    }
+
+    await this.client.ptzStart({
+      action: actionMap[direction],
+      speed: 5,
+    })
+
+    // 2 秒后停止
+    setTimeout(async () => {
+      await this.client.ptzStop(actionMap[direction])
+    }, 2000)
+  }
+
+  // 抓拍
+  async captureImage() {
+    const fileName = await this.client.capture({
+      format: 'jpg',
+      onData: (data) => {
+        console.log('截图数据大小:', data.length)
+      },
+    })
+    console.log('截图已保存:', fileName)
+  }
+
+  // 切换布局
+  changeLayout(layout: 1 | 4 | 9 | 16) {
+    this.client.changeWindowLayout(layout)
+  }
+
+  // 全屏
+  toggleFullScreen() {
+    this.client.toggleFullScreen()
+  }
+
+  // 清理
+  async cleanup() {
+    if (this.deviceId) {
+      await this.client.disconnectDevice(this.deviceId)
+    }
+  }
 }
+
+// 使用
+const monitor = new VideoMonitor()
+await monitor.init()
 ```
 
-## 📋 错误码参考
-
-| 错误码 | 说明                      |
-| ------ | ------------------------- |
-| 1001   | 码流传输过程异常          |
-| 1002   | 回放结束                  |
-| 1003   | 取流失败，连接被动断开    |
-| 1006   | 视频编码格式不支持        |
-| 1007   | 网络异常导致websocket断开 |
-| 1012   | 播放资源不足              |
-| 1017   | 密码错误                  |
-
-完整错误码列表请参考源码中的 `ErrorCodes` 常量。
-
-## 💡 最佳实践
-
-### 设备连接管理
+### 录像回放与下载
 
 ```typescript
-// 1. 初始化控制器
-const controller = new HikVideoController()
+import { createHikVideoClient, getTodayTimeRange } from 'hikvideoctrl'
 
-// 2. 监听关键事件
-controller.on(EVENTS.LOGIN_SUCCESS, () => {
-  console.log('设备连接成功')
-})
+async function playbackAndDownload() {
+  const client = createHikVideoClient()
 
-controller.on(EVENTS.LOGIN_FAILED, (error) => {
-  console.error('设备连接失败:', error)
-})
-
-// 3. 登录前检查网络
-if (isValidIP(ip) && isValidPort(port)) {
-  await controller.login(deviceId, credentials)
-}
-
-// 4. 使用完毕后清理资源
-window.addEventListener('beforeunload', () => {
-  controller.logout(deviceId)
-})
-```
-
-### 视频播放优化
-
-```typescript
-// 1. 预览前设置窗口
-const windowId = 0
-controller.getWindowStatus(windowId)
-
-// 2. 设置合适的协议和码流
-await controller.startPreview(deviceId, {
-  wndId: windowId,
-  streamType: STREAM_TYPE.MAIN, // 主码流高清晰
-  protocol: PROTOCOL_TYPE.TCP, // TCP稳定性好
-  playback: 0
-})
-
-// 3. 监听播放状态
-controller.on(EVENTS.PLAY_SUCCESS, (wndInfo) => {
-  console.log('播放成功:', wndInfo)
-})
-```
-
-### 错误处理
-
-```typescript
-try {
-  await controller.login(deviceId, {
-    username: 'admin',
-    password: 'password123'
+  // 初始化
+  await client.initialize({
+    container: '#video-container',
+    width: 800,
+    height: 600,
   })
-}
-catch (error) {
-  console.error('登录失败:', error.message)
-  // 处理具体错误
-  if (error.message.includes('password')) {
-    console.log('密码错误，请检查')
+
+  // 连接设备
+  const device = await client.connectDevice({
+    host: '192.168.1.64',
+    username: 'admin',
+    password: 'admin123',
+  })
+
+  // 搜索今天的录像
+  const { start, end } = getTodayTimeRange()
+  const result = await client.searchRecords(device.id, {
+    channel: 1,
+    start,
+    end,
+  })
+
+  // 解析录像列表
+  const files = result.querySelectorAll('searchMatchItem')
+  const firstFile = files[0]
+
+  if (firstFile) {
+    const playbackUri = firstFile.querySelector('playbackURI')?.textContent
+    const startTime = firstFile.querySelector('startTime')?.textContent
+    const endTime = firstFile.querySelector('endTime')?.textContent
+
+    // 回放录像
+    await client.startPlayback(device.id, {
+      channel: 1,
+      start: startTime!,
+      end: endTime!,
+    })
+
+    // 下载录像
+    const handleId = await client.downloadRecord(
+      device.id,
+      playbackUri!,
+      'my-recording',
+    )
+    console.log('下载任务已创建:', handleId)
   }
 }
 ```
 
-## 🔍 开发调试
+### Vue 3 集成
+
+```vue
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import { createHikVideoClient, type DeviceSession } from 'hikvideoctrl'
+
+const client = createHikVideoClient()
+const device = ref<DeviceSession>()
+const channels = ref<any[]>([])
+
+onMounted(async () => {
+  // 初始化
+  await client.initialize({
+    container: '#video-container',
+    width: '100%',
+    height: 600,
+    layout: 4,
+  })
+
+  // 连接设备
+  device.value = await client.connectDevice({
+    host: '192.168.1.64',
+    username: 'admin',
+    password: 'admin123',
+  })
+
+  // 获取通道列表
+  channels.value = await client.getChannels(device.value.id)
+})
+
+onUnmounted(async () => {
+  if (device.value) {
+    await client.disconnectDevice(device.value.id)
+  }
+})
+
+const startPreview = async (channelId: number, windowIndex: number) => {
+  if (!device.value) return
+
+  await client.startPreview(device.value.id, {
+    channel: channelId,
+    windowIndex,
+  })
+}
+</script>
+
+<template>
+  <div>
+    <div id="video-container"></div>
+    <div class="controls">
+      <button
+        v-for="(ch, idx) in channels"
+        :key="ch.id"
+        @click="startPreview(Number(ch.id), idx)"
+      >
+        预览 {{ ch.name }}
+      </button>
+    </div>
+  </div>
+</template>
+```
+
+### React 集成
+
+```tsx
+import type { DeviceSession } from 'hikvideoctrl'
+import { createHikVideoClient } from 'hikvideoctrl'
+import { useEffect, useRef, useState } from 'react'
+
+function VideoPlayer() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const clientRef = useRef(createHikVideoClient())
+  const [device, setDevice] = useState<DeviceSession>()
+  const [channels, setChannels] = useState<any[]>([])
+
+  useEffect(() => {
+    const init = async () => {
+      const client = clientRef.current
+
+      await client.initialize({
+        container: containerRef.current!,
+        width: 1000,
+        height: 600,
+        layout: 4,
+      })
+
+      const dev = await client.connectDevice({
+        host: '192.168.1.64',
+        username: 'admin',
+        password: 'admin123',
+      })
+      setDevice(dev)
+
+      const chs = await client.getChannels(dev.id)
+      setChannels(chs)
+    }
+
+    init()
+
+    return () => {
+      if (device) {
+        clientRef.current.disconnectDevice(device.id)
+      }
+    }
+  }, [])
+
+  const startPreview = async (channelId: number, windowIndex: number) => {
+    if (!device)
+      return
+
+    await clientRef.current.startPreview(device.id, {
+      channel: channelId,
+      windowIndex,
+    })
+  }
+
+  return (
+    <div>
+      <div ref={containerRef}></div>
+      <div className="controls">
+        {channels.map((ch, idx) => (
+          <button key={ch.id} onClick={() => startPreview(Number(ch.id), idx)}>
+            预览
+            {' '}
+            {ch.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## 🐛 错误处理
+
+所有异步方法都可能抛出 `HikSDKError`，建议使用 try-catch：
 
 ```typescript
-// 查看内部状态
-console.log(controller.getWindowStatus(0))
-console.log(controller.getLocalConfig())
+import { HikSDKError } from 'hikvideoctrl'
+
+try {
+  await client.connectDevice({
+    host: '192.168.1.64',
+    username: 'admin',
+    password: 'wrong_password',
+  })
+}
+catch (error) {
+  if (error instanceof HikSDKError) {
+    console.error('错误代码:', error.code)
+    console.error('错误信息:', error.message)
+    console.error('详细信息:', error.details)
+  }
+}
 ```
 
-## 📝 开发指南
+**错误代码类型：**
 
-### 本地开发
+- `sdk-not-found` - SDK 未找到
+- `sdk-method-missing` - SDK 方法不存在
+- `sdk-call-failed` - SDK 调用失败
+- `sdk-initialization` - 初始化失败
+- `validation` - 参数验证失败
+- `not-initialized` - 未初始化
+- `device-not-found` - 设备未连接
+- `window-state` - 窗口状态错误
+- `operation-failed` - 操作失败
 
-```bash
-# 克隆仓库
-git clone https://github.com/joygqz/hikvideoctrl.git
-cd hikvideoctrl
+## 📖 TypeScript 支持
 
-# 安装依赖
-pnpm install
+库完全使用 TypeScript 编写，提供完整的类型定义：
 
-# 构建项目
-pnpm build
+```typescript
+import type {
+  ChannelInfo,
+  DeviceCredentials,
+  DeviceSession,
+  HikVideoClient,
+  HikVideoEventMap,
+  PlaybackOptions,
+  PreviewOptions,
+  PTZCommandOptions,
+} from 'hikvideoctrl'
 
-# 运行示例
-# 在 example 目录中启动本地服务器
-npx serve example
+// 所有类型都有完整的智能提示
 ```
-
-### 贡献代码
-
-欢迎提交 Pull Request 或 Issue！
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
 
 ## 📄 许可证
 
-[MIT License](LICENSE) © 2024 joygqz
+[MIT License](LICENSE) © 2024 [joygqz](https://github.com/joygqz)
+
+## ⭐ 如果这个库对你有帮助，请给一个 Star！
+
+[![Star History Chart](https://api.star-history.com/svg?repos=joygqz/hikvideoctrl&type=Date)](https://star-history.com/#joygqz/hikvideoctrl&Date)

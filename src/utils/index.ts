@@ -1,255 +1,121 @@
 /**
- * 海康威视 WebSDK 工具函数库
+ * 时间格式化
  */
+export function formatDate(date: Date, format: string = 'yyyy-MM-dd HH:mm:ss'): string {
+  const tokens: Record<string, string> = {
+    yyyy: date.getFullYear().toString(),
+    MM: (date.getMonth() + 1).toString().padStart(2, '0'),
+    dd: date.getDate().toString().padStart(2, '0'),
+    HH: date.getHours().toString().padStart(2, '0'),
+    mm: date.getMinutes().toString().padStart(2, '0'),
+    ss: date.getSeconds().toString().padStart(2, '0'),
+  }
 
-/**
- * 格式化日期时间
- * @param date 日期对象
- * @param format 格式字符串
- * @returns 格式化后的时间字符串
- */
-export function formatDate(date: Date, format: string = 'yyyy-MM-dd hh:mm:ss'): string {
-  const year = date.getFullYear().toString()
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const day = date.getDate().toString().padStart(2, '0')
-  const hours = date.getHours().toString().padStart(2, '0')
-  const minutes = date.getMinutes().toString().padStart(2, '0')
-  const seconds = date.getSeconds().toString().padStart(2, '0')
-
-  return format
-    .replace(/yyyy/g, year)
-    .replace(/MM/g, month)
-    .replace(/dd/g, day)
-    .replace(/hh/g, hours)
-    .replace(/mm/g, minutes)
-    .replace(/ss/g, seconds)
+  return Object.entries(tokens).reduce(
+    (acc, [token, value]) => acc.replace(new RegExp(token, 'g'), value),
+    format,
+  )
 }
 
-/**
- * 获取当前时间字符串
- * @param format 时间格式，默认为 'yyyy-MM-dd hh:mm:ss'
- * @returns 当前时间字符串
- */
-export function getCurrentTimeString(format: string = 'yyyy-MM-dd hh:mm:ss'): string {
+export function getCurrentTimeString(format: string = 'yyyy-MM-dd HH:mm:ss'): string {
   return formatDate(new Date(), format)
 }
 
-/**
- * 获取今天的时间范围
- * @returns 包含开始时间和结束时间的对象
- */
-export function getTodayTimeRange(): { startTime: string, endTime: string } {
-  const today = formatDate(new Date(), 'yyyy-MM-dd')
+export function getTodayTimeRange(): { start: string, end: string } {
+  const base = formatDate(new Date(), 'yyyy-MM-dd')
   return {
-    startTime: `${today} 00:00:00`,
-    endTime: `${today} 23:59:59`,
+    start: `${base} 00:00:00`,
+    end: `${base} 23:59:59`,
   }
 }
 
-/**
- * 获取窗口尺寸
- * @returns 包含宽度和高度的对象
- */
-export function getWindowSize(): { width: number, height: number } {
-  const width = window.innerWidth + window.scrollX
-  const height = window.innerHeight + window.scrollY
-  return { width, height }
-}
-
-/**
- * 将 Uint8Array 转换为 Base64 字符串
- * @param uint8Array Uint8Array 数据
- * @returns Promise<string> Base64 字符串
- */
 export function uint8ArrayToBase64(uint8Array: Uint8Array): Promise<string> {
   return new Promise((resolve) => {
     const blob = new Blob([new Uint8Array(uint8Array)])
     const reader = new FileReader()
     reader.onload = () => {
       const dataUrl = reader.result as string
-      const base64 = dataUrl.split(',')[1]
-      resolve(base64)
+      resolve(dataUrl.split(',')[1] ?? '')
     }
     reader.readAsDataURL(blob)
   })
 }
 
-/**
- * 加载 XML 字符串为 XML 文档对象
- * @param xmlString XML 字符串
- * @returns XML 文档对象或 null
- */
-export function loadXML(xmlString: string): Document | null {
-  if (!xmlString) {
+export function loadXML(xml: string): Document | null {
+  if (!xml)
     return null
-  }
 
   try {
-    const parser = new DOMParser()
-    return parser.parseFromString(xmlString, 'text/xml')
+    return new DOMParser().parseFromString(xml, 'text/xml')
   }
   catch {
     return null
   }
 }
 
-/**
- * 将 XML 文档对象转换为 XML 字符串
- * @param xmlDoc XML 文档对象
- * @returns XML 字符串
- */
-export function toXMLString(xmlDoc: Document): string {
+export function toXMLString(xmlDoc?: Document | null): string {
+  if (!xmlDoc)
+    return ''
+
   try {
     const serializer = new XMLSerializer()
-    let xmlString = serializer.serializeToString(xmlDoc)
-
-    if (!xmlString.includes('<?xml')) {
-      xmlString = `<?xml version='1.0' encoding='utf-8'?>${xmlString}`
-    }
-
-    return xmlString
+    const xml = serializer.serializeToString(xmlDoc)
+    return xml.includes('<?xml') ? xml : `<?xml version='1.0' encoding='utf-8'?>${xml}`
   }
   catch {
     return ''
   }
 }
 
-/**
- * HTML 实体编码
- * @param str 要编码的字符串
- * @returns 编码后的字符串
- */
-export function encodeString(str: string): string {
-  if (str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  }
-  return ''
+export function encodeString(value: string): string {
+  return value ? value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''
 }
 
-/**
- * 生成设备标识符
- * @param ip IP 地址
- * @param port 端口号
- * @returns 设备标识符
- */
-export function generateDeviceIdentify(ip: string, port: number): string {
-  return `${ip}_${port}`
+export function generateDeviceIdentify(host: string, port: number): string {
+  return `${host}_${port}`
 }
 
-/**
- * 解析设备标识符
- * @param deviceIdentify 设备标识符
- * @returns 包含 IP 和端口的对象
- */
-export function parseDeviceIdentify(deviceIdentify: string): { ip: string, port: number } {
-  const parts = deviceIdentify.split('_')
+export function parseDeviceIdentify(deviceIdentify: string): { host: string, port: number } {
+  const [host, portText] = deviceIdentify.split('_')
   return {
-    ip: parts[0],
-    port: Number.parseInt(parts[1], 10) || 80,
+    host,
+    port: Number.parseInt(portText ?? '80', 10) || 80,
   }
 }
 
-/**
- * 验证 IP 地址格式
- * @param ip IP 地址字符串
- * @returns 是否为有效的 IP 地址
- */
-export function isValidIP(ip: string): boolean {
-  const ipRegex = /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})$/
-  return ipRegex.test(ip)
+export function isValidIP(address: string): boolean {
+  const ipv4 = /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})$/
+  return ipv4.test(address)
 }
 
-/**
- * 验证端口号格式
- * @param port 端口号
- * @returns 是否为有效的端口号
- */
 export function isValidPort(port: number): boolean {
   return Number.isInteger(port) && port >= 1 && port <= 65535
 }
 
-/**
- * 生成唯一文件名
- * @param prefix 文件名前缀
- * @param extension 文件扩展名
- * @returns 唯一文件名
- */
-export function generateUniqueFileName(prefix: string, extension: string): string {
-  const timestamp = new Date().getTime()
-  return `${prefix}_${timestamp}.${extension}`
+export function normalizePort(port: number): number {
+  if (!Number.isFinite(port))
+    throw new TypeError('端口必须为有效数字')
+
+  const value = Math.trunc(port)
+  if (!isValidPort(value))
+    throw new RangeError('端口范围应在 1 - 65535 之间')
+  return value
 }
 
-/**
- * 延迟执行
- * @param ms 延迟毫秒数
- * @returns Promise
- */
+export function generateUniqueFileName(prefix: string, extension: string): string {
+  return `${prefix}_${Date.now()}.${extension}`
+}
+
 export function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-/**
- * 检查时间范围是否有效
- * @param startTime 开始时间字符串
- * @param endTime 结束时间字符串
- * @returns 是否为有效的时间范围
- */
-export function isValidTimeRange(startTime: string, endTime: string): boolean {
-  const start = Date.parse(startTime.replace(/-/g, '/'))
-  const end = Date.parse(endTime.replace(/-/g, '/'))
-  return !Number.isNaN(start) && !Number.isNaN(end) && end >= start
+export function isValidTimeRange(start: string, end: string): boolean {
+  const startTime = Date.parse(start.replace(/-/g, '/'))
+  const endTime = Date.parse(end.replace(/-/g, '/'))
+  return Number.isFinite(startTime) && Number.isFinite(endTime) && endTime >= startTime
 }
 
-/**
- * 创建响应处理器
- * @param successCallback 成功回调
- * @param errorCallback 错误回调
- * @returns 处理器对象
- */
-export function createResponseHandler<T = any>(
-  successCallback?: (data?: T) => void,
-  errorCallback?: (status?: number, xmlDoc?: Document, error?: any) => void,
-) {
-  return {
-    success: successCallback || (() => {}),
-    error: errorCallback || (() => {}),
-  }
-}
-
-/**
- * Promise 化 WebVideoCtrl 方法
- * @param method WebVideoCtrl 方法
- * @param args 方法参数
- * @returns Promise
- */
-export function promisify<T = any>(
-  method: (...args: any[]) => any,
-  ...args: any[]
-): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const lastArg = args[args.length - 1]
-
-    // 如果最后一个参数是对象且包含 success/error 回调，则替换它们
-    if (lastArg && typeof lastArg === 'object' && ('success' in lastArg || 'error' in lastArg)) {
-      args[args.length - 1] = {
-        ...lastArg,
-        success: (data: T) => resolve(data),
-        error: (status: number, _xmlDoc: Document, error: any) => reject(new Error(`Error ${status}: ${error}`)),
-      }
-    }
-    else {
-      // 否则添加回调参数
-      args.push({
-        success: (data: T) => resolve(data),
-        error: (status: number, _xmlDoc: Document, error: any) => reject(new Error(`Error ${status}: ${error}`)),
-      })
-    }
-
-    const result = method(...args)
-
-    // 如果方法直接返回结果（同步方法），则直接 resolve
-    if (result !== undefined && result !== -1) {
-      resolve(result)
-    }
-  })
+export function toProtocolValue(protocol: 'http' | 'https'): 1 | 2 {
+  return protocol === 'https' ? 2 : 1
 }
