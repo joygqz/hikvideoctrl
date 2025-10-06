@@ -1,5 +1,5 @@
 /**
- * 海康威视WebSDK工具函数库
+ * 海康威视 WebSDK 工具函数库
  */
 
 /**
@@ -57,9 +57,9 @@ export function getWindowSize(): { width: number, height: number } {
 }
 
 /**
- * 将Uint8Array转换为Base64字符串
- * @param uint8Array Uint8Array数据
- * @returns Promise<string> Base64字符串
+ * 将 Uint8Array 转换为 Base64 字符串
+ * @param uint8Array Uint8Array 数据
+ * @returns Promise<string> Base64 字符串
  */
 export function uint8ArrayToBase64(uint8Array: Uint8Array): Promise<string> {
   return new Promise((resolve) => {
@@ -75,9 +75,9 @@ export function uint8ArrayToBase64(uint8Array: Uint8Array): Promise<string> {
 }
 
 /**
- * 加载XML字符串为XML文档对象
- * @param xmlString XML字符串
- * @returns XML文档对象或null
+ * 加载 XML 字符串为 XML 文档对象
+ * @param xmlString XML 字符串
+ * @returns XML 文档对象或 null
  */
 export function loadXML(xmlString: string): Document | null {
   if (!xmlString) {
@@ -94,9 +94,9 @@ export function loadXML(xmlString: string): Document | null {
 }
 
 /**
- * 将XML文档对象转换为XML字符串
- * @param xmlDoc XML文档对象
- * @returns XML字符串
+ * 将 XML 文档对象转换为 XML 字符串
+ * @param xmlDoc XML 文档对象
+ * @returns XML 字符串
  */
 export function toXMLString(xmlDoc: Document): string {
   try {
@@ -115,7 +115,7 @@ export function toXMLString(xmlDoc: Document): string {
 }
 
 /**
- * HTML实体编码
+ * HTML 实体编码
  * @param str 要编码的字符串
  * @returns 编码后的字符串
  */
@@ -128,7 +128,7 @@ export function encodeString(str: string): string {
 
 /**
  * 生成设备标识符
- * @param ip IP地址
+ * @param ip IP 地址
  * @param port 端口号
  * @returns 设备标识符
  */
@@ -139,7 +139,7 @@ export function generateDeviceIdentify(ip: string, port: number): string {
 /**
  * 解析设备标识符
  * @param deviceIdentify 设备标识符
- * @returns 包含IP和端口的对象
+ * @returns 包含 IP 和端口的对象
  */
 export function parseDeviceIdentify(deviceIdentify: string): { ip: string, port: number } {
   const parts = deviceIdentify.split('_')
@@ -150,9 +150,9 @@ export function parseDeviceIdentify(deviceIdentify: string): { ip: string, port:
 }
 
 /**
- * 验证IP地址格式
- * @param ip IP地址字符串
- * @returns 是否为有效的IP地址
+ * 验证 IP 地址格式
+ * @param ip IP 地址字符串
+ * @returns 是否为有效的 IP 地址
  */
 export function isValidIP(ip: string): boolean {
   const ipRegex = /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})$/
@@ -217,8 +217,8 @@ export function createResponseHandler<T = any>(
 }
 
 /**
- * Promise化WebVideoCtrl方法
- * @param method WebVideoCtrl方法
+ * Promise 化 WebVideoCtrl 方法
+ * @param method WebVideoCtrl 方法
  * @param args 方法参数
  * @returns Promise
  */
@@ -229,7 +229,7 @@ export function promisify<T = any>(
   return new Promise((resolve, reject) => {
     const lastArg = args[args.length - 1]
 
-    // 如果最后一个参数是对象且包含success/error回调，则替换它们
+    // 如果最后一个参数是对象且包含 success/error 回调，则替换它们
     if (lastArg && typeof lastArg === 'object' && ('success' in lastArg || 'error' in lastArg)) {
       args[args.length - 1] = {
         ...lastArg,
@@ -247,7 +247,7 @@ export function promisify<T = any>(
 
     const result = method(...args)
 
-    // 如果方法直接返回结果（同步方法），则直接resolve
+    // 如果方法直接返回结果（同步方法），则直接 resolve
     if (result !== undefined && result !== -1) {
       resolve(result)
     }

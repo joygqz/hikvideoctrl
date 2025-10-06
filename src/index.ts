@@ -1,9 +1,5 @@
 /**
- * 海康威视无插件视频播放SDK
- * HikVideoCtrl - Hikvision WebSDK Wrapper
- *
- * @author joygqz
- * @version 1.0.0
+ * 海康威视无插件视频播放 SDK
  */
 
 import type {
@@ -38,7 +34,6 @@ import { ErrorCodes, WindowType } from './utils/constants'
 
 /**
  * 海康威视 WebVideoCtrl 封装类
- * 提供了设备管理、视频播放、PTZ控制、录像管理等完整功能
  */
 export class HikVideoController {
   private currentWindowIndex = 0
@@ -294,7 +289,7 @@ export class HikVideoController {
     return this.videoPlayer.getWndSet()
   }
 
-  // ==================== PTZ控制 ====================
+  // ==================== PTZ 控制 ====================
 
   async ptzControl(options: PTZOptions, stop: boolean = false): Promise<void> {
     return this.ptzController.ptzControl(options, stop)

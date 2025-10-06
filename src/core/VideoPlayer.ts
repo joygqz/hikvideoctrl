@@ -199,7 +199,7 @@ export class VideoPlayer {
   }
 
   /**
-   * 启用3D放大
+   * 启用 3D 放大
    */
   async enable3DZoom(windowIndex?: number, callback?: (zoomInfo: any) => void): Promise<void> {
     const index = windowIndex ?? this.currentWindowIndex
@@ -207,7 +207,7 @@ export class VideoPlayer {
   }
 
   /**
-   * 禁用3D放大
+   * 禁用 3D 放大
    */
   disable3DZoom(): boolean {
     return window.WebVideoCtrl.I_Disable3DZoom() === 0

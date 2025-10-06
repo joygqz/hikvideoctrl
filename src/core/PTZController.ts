@@ -1,5 +1,5 @@
 /**
- * PTZ控制模块
+ * PTZ 控制模块
  */
 
 import type { PTZOptions } from '../types'
@@ -17,7 +17,7 @@ export class PTZController {
   }
 
   /**
-   * PTZ控制
+   * PTZ 控制
    */
   async ptzControl(options: PTZOptions, stop: boolean = false): Promise<void> {
     const {
