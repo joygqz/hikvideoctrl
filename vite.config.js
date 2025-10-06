@@ -18,7 +18,6 @@ export default defineConfig({
       },
     },
   },
-
   plugins: [
     dts({
       include: ['./src/**/*.ts'],

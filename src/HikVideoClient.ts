@@ -30,7 +30,6 @@ import { VideoService } from './services/VideoService'
  * @example
  * ```typescript
  * const client = createHikVideoClient()
- *
  * // 初始化
  * await client.initialize({
  *   container: '#video-container',
@@ -38,14 +37,12 @@ import { VideoService } from './services/VideoService'
  *   height: 600,
  *   layout: 4
  * })
- *
  * // 连接设备
  * const device = await client.connectDevice({
  *   host: '192.168.1.64',
  *   username: 'admin',
  *   password: 'password'
  * })
- *
  * // 开始预览
  * await client.startPreview(device.id, {
  *   channel: 1,
@@ -455,7 +452,6 @@ export class HikVideoClient {
    * ```typescript
    * // 停止指定窗口
    * await client.stopPreview(0)
-   *
    * // 停止当前窗口
    * await client.stopPreview()
    * ```
@@ -749,13 +745,11 @@ export class HikVideoClient {
    * @example
    * ```typescript
    * import { PTZControlType } from 'hikvideoctrl'
-   *
    * // 开始上移
    * await client.ptzControl({
    *   action: PTZControlType.Up,
    *   speed: 5
    * })
-   *
    * // 停止上移
    * await client.ptzControl({
    *   action: PTZControlType.Up
@@ -847,7 +841,6 @@ export class HikVideoClient {
    *   end: '2024-01-01 23:59:59',
    *   streamType: 1
    * })
-   *
    * const files = result.querySelectorAll('searchMatchItem')
    * ```
    */

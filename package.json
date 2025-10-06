@@ -19,27 +19,27 @@
   },
   "keywords": [
     "海康",
-    "监控",
-    "无插件",
-    "播放器",
+    "海康威视",
     "海康播放器",
-    "web",
+    "监控",
+    "录像",
+    "无插件",
+    "云台控制",
+    "播放器",
+    "无插件开发包",
+    "工具",
     "hik",
     "hikvision",
     "sdk",
     "video",
     "player",
     "video-player",
-    "surveillance",
     "camera",
     "websocket",
     "no-plugin",
-    "webrtc",
     "esm",
     "ptz-control",
     "playback",
-    "nvr",
-    "ipcamera",
     "hikvideo"
   ],
   "exports": {
@@ -66,15 +66,15 @@
     "release": "bumpp && pnpm publish"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^5.3.0",
-    "@microsoft/api-extractor": "^7.52.12",
-    "bumpp": "^10.2.3",
-    "eslint": "^9.35.0",
-    "eslint-plugin-format": "^1.0.1",
+    "@antfu/eslint-config": "^5.4.1",
+    "@microsoft/api-extractor": "^7.53.0",
+    "bumpp": "^10.3.1",
+    "eslint": "^9.37.0",
+    "eslint-plugin-format": "^1.0.2",
     "simple-git-hooks": "^2.13.1",
     "typescript": "~5.8.3",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^7.1.2"
+    "vite": "^7.1.9"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
