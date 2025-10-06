@@ -1,5 +1,6 @@
 /**
  * 视频播放模块
+ * 负责预览、回放、播放控制等功能
  */
 
 import type { PlaybackOptions, PreviewOptions } from '../types'
@@ -13,12 +14,25 @@ export class VideoPlayer {
     this.currentWindowIndex = currentWindowIndex
   }
 
+  /**
+   * 设置当前窗口索引
+   */
   setCurrentWindowIndex(index: number): void {
     this.currentWindowIndex = index
   }
 
+  /**
+   * 获取当前窗口索引
+   */
   getCurrentWindowIndex(): number {
     return this.currentWindowIndex
+  }
+
+  /**
+   * 获取窗口索引（支持传入参数或使用默认）
+   */
+  private getWindowIndex(windowIndex?: number): number {
+    return windowIndex ?? this.currentWindowIndex
   }
 
   /**
@@ -137,9 +151,8 @@ export class VideoPlayer {
    * 暂停回放
    */
   async pausePlayback(windowIndex?: number): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
     return promisify(window.WebVideoCtrl.I_Pause, {
-      iWndIndex: index,
+      iWndIndex: this.getWindowIndex(windowIndex),
     })
   }
 
@@ -147,29 +160,26 @@ export class VideoPlayer {
    * 恢复回放
    */
   async resumePlayback(windowIndex?: number): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
     return promisify(window.WebVideoCtrl.I_Resume, {
-      iWndIndex: index,
+      iWndIndex: this.getWindowIndex(windowIndex),
     })
   }
 
   /**
-   * 快进
+   * 快进回放
    */
   async playFast(windowIndex?: number): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
     return promisify(window.WebVideoCtrl.I_PlayFast, {
-      iWndIndex: index,
+      iWndIndex: this.getWindowIndex(windowIndex),
     })
   }
 
   /**
-   * 慢放
+   * 慢放回放
    */
   async playSlow(windowIndex?: number): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
     return promisify(window.WebVideoCtrl.I_PlaySlow, {
-      iWndIndex: index,
+      iWndIndex: this.getWindowIndex(windowIndex),
     })
   }
 
@@ -177,65 +187,64 @@ export class VideoPlayer {
    * 打开声音
    */
   async openSound(windowIndex?: number): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
-    return promisify(window.WebVideoCtrl.I_OpenSound, index)
+    return promisify(window.WebVideoCtrl.I_OpenSound, this.getWindowIndex(windowIndex))
   }
 
   /**
    * 关闭声音
    */
   async closeSound(windowIndex?: number): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
-    return promisify(window.WebVideoCtrl.I_CloseSound, index)
+    return promisify(window.WebVideoCtrl.I_CloseSound, this.getWindowIndex(windowIndex))
   }
 
   /**
    * 设置音量
+   * @param volume 音量大小，范围 0-100
+   * @param windowIndex 窗口索引
    */
   async setVolume(volume: number, windowIndex?: number): Promise<void> {
     if (volume < 0 || volume > 100) {
       throw new Error('音量范围应在0-100之间')
     }
-    const index = windowIndex ?? this.currentWindowIndex
-    return promisify(window.WebVideoCtrl.I_SetVolume, volume, index)
+    return promisify(window.WebVideoCtrl.I_SetVolume, volume, this.getWindowIndex(windowIndex))
   }
 
   /**
    * 启用电子放大
+   * 开启后，在窗口中鼠标左键拖动从左上到右下是放大，右下到左上是缩小
    */
   async enableEZoom(windowIndex?: number): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
-    return promisify(window.WebVideoCtrl.I_EnableEZoom, index)
+    return promisify(window.WebVideoCtrl.I_EnableEZoom, this.getWindowIndex(windowIndex))
   }
 
   /**
    * 禁用电子放大
    */
   async disableEZoom(windowIndex?: number): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
-    return promisify(window.WebVideoCtrl.I_DisableEZoom, index)
+    return promisify(window.WebVideoCtrl.I_DisableEZoom, this.getWindowIndex(windowIndex))
   }
 
   /**
    * 启用 3D 放大
+   * 开启后，在窗口中鼠标左键拖动方向从左上到右下是放大，右下到左上是缩小
    */
   async enable3DZoom(windowIndex?: number, callback?: (zoomInfo: any) => void): Promise<void> {
-    const index = windowIndex ?? this.currentWindowIndex
-    return promisify(window.WebVideoCtrl.I_Enable3DZoom, index, callback)
+    return promisify(window.WebVideoCtrl.I_Enable3DZoom, this.getWindowIndex(windowIndex), callback)
   }
 
   /**
    * 禁用 3D 放大
    */
-  disable3DZoom(): boolean {
-    return window.WebVideoCtrl.I_Disable3DZoom() === 0
+  disable3DZoom(windowIndex?: number): boolean {
+    return window.WebVideoCtrl.I_Disable3DZoom(this.getWindowIndex(windowIndex)) === 0
   }
 
   /**
-   * 全屏显示
+   * 全屏显示/退出全屏
+   * @param enable true-全屏, false-退出全屏
    */
-  fullScreen(): void {
-    window.WebVideoCtrl.I_FullScreen(true)
+  fullScreen(enable: boolean = true): void {
+    window.WebVideoCtrl.I_FullScreen(enable)
   }
 
   /**
