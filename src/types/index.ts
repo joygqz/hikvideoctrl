@@ -64,6 +64,7 @@ export interface SearchRecordOptions {
   startTime: string
   endTime: string
   streamType?: number
+  searchPos?: number
 }
 
 export interface DownloadRecordOptions {

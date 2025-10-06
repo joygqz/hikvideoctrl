@@ -229,40 +229,40 @@ export class HikVideoController {
     })
   }
 
-  async pausePlayback(): Promise<void> {
-    return this.videoPlayer.pausePlayback()
+  async pausePlayback(windowIndex?: number): Promise<void> {
+    return this.videoPlayer.pausePlayback(windowIndex)
   }
 
-  async resumePlayback(): Promise<void> {
-    return this.videoPlayer.resumePlayback()
+  async resumePlayback(windowIndex?: number): Promise<void> {
+    return this.videoPlayer.resumePlayback(windowIndex)
   }
 
-  async playFast(): Promise<void> {
-    return this.videoPlayer.playFast()
+  async playFast(windowIndex?: number): Promise<void> {
+    return this.videoPlayer.playFast(windowIndex)
   }
 
-  async playSlow(): Promise<void> {
-    return this.videoPlayer.playSlow()
+  async playSlow(windowIndex?: number): Promise<void> {
+    return this.videoPlayer.playSlow(windowIndex)
   }
 
-  async openSound(): Promise<void> {
-    return this.videoPlayer.openSound()
+  async openSound(windowIndex?: number): Promise<void> {
+    return this.videoPlayer.openSound(windowIndex)
   }
 
-  async closeSound(): Promise<void> {
-    return this.videoPlayer.closeSound()
+  async closeSound(windowIndex?: number): Promise<void> {
+    return this.videoPlayer.closeSound(windowIndex)
   }
 
-  async setVolume(volume: number): Promise<void> {
-    return this.videoPlayer.setVolume(volume)
+  async setVolume(volume: number, windowIndex?: number): Promise<void> {
+    return this.videoPlayer.setVolume(volume, windowIndex)
   }
 
-  async enableEZoom(): Promise<void> {
-    return this.videoPlayer.enableEZoom()
+  async enableEZoom(windowIndex?: number): Promise<void> {
+    return this.videoPlayer.enableEZoom(windowIndex)
   }
 
-  async disableEZoom(): Promise<void> {
-    return this.videoPlayer.disableEZoom()
+  async disableEZoom(windowIndex?: number): Promise<void> {
+    return this.videoPlayer.disableEZoom(windowIndex)
   }
 
   async enable3DZoom(windowIndex?: number, callback?: (zoomInfo: any) => void): Promise<void> {
@@ -295,12 +295,12 @@ export class HikVideoController {
     return this.ptzController.ptzControl(options, stop)
   }
 
-  async setPreset(presetId: number): Promise<void> {
-    return this.ptzController.setPreset(presetId)
+  async setPreset(presetId: number, windowIndex?: number): Promise<void> {
+    return this.ptzController.setPreset(presetId, windowIndex)
   }
 
-  async goPreset(presetId: number): Promise<void> {
-    return this.ptzController.goPreset(presetId)
+  async goPreset(presetId: number, windowIndex?: number): Promise<void> {
+    return this.ptzController.goPreset(presetId, windowIndex)
   }
 
   // ==================== 录像和抓拍 ====================
@@ -315,8 +315,8 @@ export class HikVideoController {
     })
   }
 
-  async stopRecord(): Promise<void> {
-    return this.recordManager.stopRecord(() => {
+  async stopRecord(windowIndex?: number): Promise<void> {
+    return this.recordManager.stopRecord(windowIndex, () => {
       this.eventEmitter.emit('recordStop')
     })
   }
@@ -351,8 +351,8 @@ export class HikVideoController {
     return this.configManager.setSecretKey(secretKey, windowIndex)
   }
 
-  async getOSDTime(): Promise<string> {
-    return this.configManager.getOSDTime()
+  async getOSDTime(windowIndex?: number): Promise<string> {
+    return this.configManager.getOSDTime(windowIndex)
   }
 
   getLocalConfig(): any {

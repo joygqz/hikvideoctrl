@@ -10,13 +10,14 @@ export class RecordManager {
   /**
    * 搜索录像
    */
-  async searchRecord(options: SearchRecordOptions): Promise<any[]> {
+  async searchRecord(options: SearchRecordOptions): Promise<any> {
     const {
       deviceId,
       channelId,
       startTime,
       endTime,
       streamType = StreamType.MainStream,
+      searchPos = 0,
     } = options
 
     if (!isValidTimeRange(startTime, endTime)) {
@@ -31,6 +32,7 @@ export class RecordManager {
       endTime,
       {
         iStreamType: streamType,
+        iSearchPos: searchPos,
       },
     )
   }
@@ -40,6 +42,7 @@ export class RecordManager {
    */
   async startRecord(options: RecordOptions, onSuccess?: (fileName: string) => void): Promise<void> {
     const {
+      windowIndex,
       fileName,
       useDateDir = true,
     } = options
@@ -50,6 +53,7 @@ export class RecordManager {
       window.WebVideoCtrl.I_StartRecord,
       finalFileName,
       {
+        iWndIndex: windowIndex,
         bDateDir: useDateDir,
         success: () => {
           onSuccess?.(finalFileName)
@@ -61,10 +65,11 @@ export class RecordManager {
   /**
    * 停止录像
    */
-  async stopRecord(onSuccess?: () => void): Promise<void> {
+  async stopRecord(windowIndex?: number, onSuccess?: () => void): Promise<void> {
     return promisify(
       window.WebVideoCtrl.I_StopRecord,
       {
+        iWndIndex: windowIndex,
         success: () => {
           onSuccess?.()
         },
@@ -77,6 +82,7 @@ export class RecordManager {
    */
   async capturePicture(options: CaptureOptions): Promise<void> {
     const {
+      windowIndex,
       fileName,
       format = FileFormat.JPEG,
       callback,
@@ -87,7 +93,10 @@ export class RecordManager {
     return promisify(
       window.WebVideoCtrl.I2_CapturePic,
       finalFileName,
-      callback ? { cbCallback: callback } : undefined,
+      {
+        iWndIndex: windowIndex,
+        cbCallback: callback,
+      },
     )
   }
 

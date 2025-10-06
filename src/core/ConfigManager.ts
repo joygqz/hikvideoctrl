@@ -25,10 +25,13 @@ export class ConfigManager {
   }
 
   /**
-   * 获取OSD时间
+   * 获取 OSD 时间
    */
-  async getOSDTime(): Promise<string> {
-    return promisify(window.WebVideoCtrl.I_GetOSDTime)
+  async getOSDTime(windowIndex?: number): Promise<string> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_GetOSDTime, {
+      iWndIndex: index,
+    })
   }
 
   /**

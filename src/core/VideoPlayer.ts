@@ -118,6 +118,7 @@ export class VideoPlayer {
       window.WebVideoCtrl.I_StartPlayback,
       deviceId,
       {
+        iWndIndex: windowIndex,
         iRtspPort: rtspPort,
         iStreamType: streamType,
         iChannelID: channelId,
@@ -135,67 +136,84 @@ export class VideoPlayer {
   /**
    * 暂停回放
    */
-  async pausePlayback(): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_Pause)
+  async pausePlayback(windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_Pause, {
+      iWndIndex: index,
+    })
   }
 
   /**
    * 恢复回放
    */
-  async resumePlayback(): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_Resume)
+  async resumePlayback(windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_Resume, {
+      iWndIndex: index,
+    })
   }
 
   /**
    * 快进
    */
-  async playFast(): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_PlayFast)
+  async playFast(windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_PlayFast, {
+      iWndIndex: index,
+    })
   }
 
   /**
    * 慢放
    */
-  async playSlow(): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_PlaySlow)
+  async playSlow(windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_PlaySlow, {
+      iWndIndex: index,
+    })
   }
 
   /**
    * 打开声音
    */
-  async openSound(): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_OpenSound)
+  async openSound(windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_OpenSound, index)
   }
 
   /**
    * 关闭声音
    */
-  async closeSound(): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_CloseSound)
+  async closeSound(windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_CloseSound, index)
   }
 
   /**
    * 设置音量
    */
-  async setVolume(volume: number): Promise<void> {
+  async setVolume(volume: number, windowIndex?: number): Promise<void> {
     if (volume < 0 || volume > 100) {
       throw new Error('音量范围应在0-100之间')
     }
-    return promisify(window.WebVideoCtrl.I_SetVolume, volume)
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_SetVolume, volume, index)
   }
 
   /**
    * 启用电子放大
    */
-  async enableEZoom(): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_EnableEZoom)
+  async enableEZoom(windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_EnableEZoom, index)
   }
 
   /**
    * 禁用电子放大
    */
-  async disableEZoom(): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_DisableEZoom)
+  async disableEZoom(windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_DisableEZoom, index)
   }
 
   /**

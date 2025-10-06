@@ -40,14 +40,20 @@ export class PTZController {
   /**
    * 设置预置点
    */
-  async setPreset(presetId: number): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_SetPreset, presetId)
+  async setPreset(presetId: number, windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_SetPreset, presetId, {
+      iWndIndex: index,
+    })
   }
 
   /**
    * 调用预置点
    */
-  async goPreset(presetId: number): Promise<void> {
-    return promisify(window.WebVideoCtrl.I_GoPreset, presetId)
+  async goPreset(presetId: number, windowIndex?: number): Promise<void> {
+    const index = windowIndex ?? this.currentWindowIndex
+    return promisify(window.WebVideoCtrl.I_GoPreset, presetId, {
+      iWndIndex: index,
+    })
   }
 }
