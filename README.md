@@ -1,7 +1,7 @@
 # HikVideoCtrl
 
-[![npm version](https://badge.fury.io/js/hikvideoctrl.svg)](https://badge.fury.io/js/hikvideoctrl)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NPM Version](https://img.shields.io/npm/v/hikvideoctrl?style=flat-square)](https://www.npmjs.com/package/hikvideoctrl)
+[![NPM Downloads](https://img.shields.io/npm/dm/hikvideoctrl?style=flat-square)](https://www.npmjs.com/package/hikvideoctrl)
 
 🎥 海康威视无插件视频播放 SDK 封装，支持 ESM 模块化，提供完整的 TypeScript API 和现代化开发体验。
 
@@ -93,7 +93,7 @@ async function initAndPlay() {
   try {
     // 1. 初始化插件
     await controller.initPlugin({
-      containerId: 'video-container', // 视频容器ID
+      containerId: 'video-container', // 视频容器 ID
       width: '100%',
       height: '100%',
       windowType: 1, // 单窗口
@@ -141,11 +141,11 @@ initAndPlay()
 
 ```typescript
 await controller.login({
-  ip: '192.168.1.100', // 设备IP地址
-  port: 8000, // HTTP端口，默认80
+  ip: '192.168.1.100', // 设备 IP 地址
+  port: 8000, // HTTP 端口，默认 80
   username: 'admin', // 用户名
   password: 'password123', // 密码
-  protocol: 1 // 协议版本，默认1
+  protocol: 1 // 协议版本，默认 1
 })
 ```
 
@@ -292,7 +292,7 @@ await controller.ptzControl({
 await controller.ptzControl({
   ptzIndex: PTZControlType.Up,
   speed: 4
-}, true) // 第二个参数为true表示停止
+}, true) // 第二个参数为 true 表示停止
 ```
 
 #### 变焦控制
@@ -315,7 +315,7 @@ await controller.ptzControl({
 
 ```typescript
 // 设置预置点
-await controller.setPreset(1) // 预置点1
+await controller.setPreset(1) // 预置点 1
 
 // 调用预置点
 await controller.goPreset(1)
@@ -349,12 +349,12 @@ await controller.disableEZoom()
 #### 3D定位
 
 ```typescript
-// 启用3D定位
+// 启用 3D 定位
 await controller.enable3DZoom(0, (zoomInfo) => {
-  console.log('3D定位信息:', zoomInfo)
+  console.log('3D 定位信息:', zoomInfo)
 })
 
-// 禁用3D定位
+// 禁用 3D 定位
 controller.disable3DZoom()
 ```
 
@@ -380,10 +380,10 @@ await controller.setVolume(50)
 ```typescript
 import { WindowType } from 'hikvideoctrl'
 
-// 切换为4窗口
+// 切换为 4 窗口
 await controller.changeWindowCount(WindowType.Four)
 
-// 切换为9窗口
+// 切换为 9 窗口
 await controller.changeWindowCount(WindowType.Nine)
 ```
 
@@ -489,7 +489,7 @@ const folderInfo = await controller.openFileDlg(0)
 #### HTTP请求
 
 ```typescript
-// 发送HTTP请求
+// 发送 HTTP 请求
 const response = await controller.sendHTTPRequest(deviceId, '/ISAPI/System/deviceInfo', {
   type: 'GET',
   async: true
@@ -499,7 +499,7 @@ const response = await controller.sendHTTPRequest(deviceId, '/ISAPI/System/devic
 #### 文字叠加（OSD）
 
 ```typescript
-// 获取OSD配置
+// 获取 OSD 配置
 const overlay = await controller.getTextOverlay(
   'ISAPI/System/Video/inputs/channels/1/overlays',
   deviceId
@@ -572,7 +572,7 @@ const deviceId = generateDeviceIdentify('192.168.1.100', 8000)
 // 解析设备标识
 const { ip, port } = parseDeviceIdentify('192.168.1.100_8000')
 
-// IP和端口验证
+// IP 和端口验证
 const isValidIPAddress = isValidIP('192.168.1.100')
 const isValidPortNumber = isValidPort(8000)
 
@@ -588,19 +588,19 @@ await delay(1000)
 // 获取窗口尺寸
 const { width, height } = getWindowSize()
 
-// 将Uint8Array转换为Base64
+// 将 Uint8Array 转换为 Base64
 const base64 = await uint8ArrayToBase64(imageData)
 
-// 加载XML
+// 加载 XML
 const xmlDoc = loadXML(xmlString)
 
-// 转换为XML字符串
+// 转换为 XML 字符串
 const xmlStr = toXMLString(xmlDoc)
 
-// HTML实体编码
+// HTML 实体编码
 const encoded = encodeString('<div>content</div>')
 
-// Promise化函数
+// Promise 化函数
 const result = await promisify(someFunction, arg1, arg2)
 
 // 创建响应处理器
@@ -616,12 +616,12 @@ const handler = createResponseHandler(
 
 ```typescript
 interface InitOptions {
-  containerId: string // 容器元素ID
-  width?: string // 宽度，默认'100%'
-  height?: string // 高度，默认'100%'
-  windowType?: number // 窗口类型，默认1(单窗口)
-  packageType?: number // 包类型，默认2
-  noPlugin?: boolean // 是否无插件模式，默认true
+  containerId: string // 容器元素 ID
+  width?: string // 宽度，默认 '100%'
+  height?: string // 高度，默认 '100%'
+  windowType?: number // 窗口类型，默认 1 (单窗口)
+  packageType?: number // 包类型，默认 2
+  noPlugin?: boolean // 是否无插件模式，默认 true
   onWindowSelect?: (windowIndex: number) => void
   onWindowDoubleClick?: (windowIndex: number, isFullScreen: boolean) => void
   onEvent?: (eventType: number, param1: number, param2: number) => void
@@ -635,11 +635,11 @@ interface InitOptions {
 
 ```typescript
 interface DeviceInfo {
-  ip: string // 设备IP地址
+  ip: string // 设备 IP 地址
   port: number // 设备端口
   username: string // 用户名
   password: string // 密码
-  protocol?: number // 协议版本，默认1
+  protocol?: number // 协议版本，默认 1
 }
 ```
 
