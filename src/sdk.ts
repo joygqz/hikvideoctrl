@@ -339,7 +339,7 @@ export interface LoadWebVideoCtrlOptions {
  *
  * 已存在 `window.WebVideoCtrl` 时直接复用；否则注入 `<script>` 并等待就绪。
  *
- * 注：SDK 依赖同目录下的 `playctrl/`、`encryption/` 等子资源（相对路径请求），
+ * 注：SDK 依赖同目录下的 `jsPlugin/`、`encryption/` 等子资源（相对路径请求），
  * 调用者需保证 `scriptUrl` 同级可访问。
  */
 export function loadWebVideoCtrl(

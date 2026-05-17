@@ -2,7 +2,8 @@
   "name": "hikvideoctrl",
   "type": "module",
   "version": "2.0.0",
-  "description": "海康威视无插件视频播放 SDK 封装库，支持 TypeScript/ESM，提供设备管理、视频播放、PTZ 控制、录像管理等完整功能。",
+  "packageManager": "pnpm@10.33.4",
+  "description": "海康威视无插件的现代 TypeScript 封装，统一 async/await API，覆盖设备登录、实时预览、录像回放、抓拍、PTZ 云台与设备维护。",
   "author": {
     "name": "joygqz",
     "email": "joygqz@gmail.com",
@@ -18,37 +19,55 @@
     "url": "https://github.com/joygqz/hikvideoctrl/issues"
   },
   "keywords": [
+    "hikvision",
+    "hik",
+    "hikvideo",
     "海康",
     "海康威视",
+    "海康SDK",
     "海康播放器",
-    "监控",
-    "录像",
+    "海康监控",
     "无插件",
-    "云台控制",
-    "播放器",
     "无插件开发包",
-    "工具",
-    "hik",
-    "hikvision",
-    "sdk",
-    "video",
-    "player",
-    "video-player",
-    "camera",
-    "websocket",
     "no-plugin",
-    "esm",
+    "websdk",
+    "ipcamera",
+    "ip-camera",
+    "camera",
+    "网络摄像头",
+    "nvr",
+    "dvr",
+    "surveillance",
+    "cctv",
+    "监控",
+    "ptz",
     "ptz-control",
+    "云台控制",
+    "球机",
+    "video",
+    "video-player",
+    "player",
+    "播放器",
     "playback",
-    "hikvideo"
+    "回放",
+    "录像",
+    "websocket",
+    "rtsp",
+    "isapi",
+    "h264",
+    "h265",
+    "typescript",
+    "esm",
+    "browser"
   ],
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.umd.cjs"
     },
-    "./*": "./*"
+    "./package.json": "./package.json"
   },
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",
@@ -56,6 +75,13 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "tsc && vite build",
     "lint": "eslint .",
@@ -71,6 +97,7 @@
     "bumpp": "^10.3.1",
     "eslint": "^9.37.0",
     "eslint-plugin-format": "^1.0.2",
+    "lint-staged": "^15.2.10",
     "simple-git-hooks": "^2.13.1",
     "typescript": "~5.8.3",
     "unplugin-dts": "1.0.0-beta.6",

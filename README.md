@@ -433,8 +433,8 @@ export function CameraPanel() {
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
-| `async` | `boolean` | 否 | 底层默认 | 是否异步交互 |
-| `cgi` | `number` | 否 | 底层默认 | CGI 协议选择 |
+| `async` | `boolean` | 否 | `true` | HTTP 交互方式，`true` 异步、`false` 同步 |
+| `cgi` | `number` | 否 | 自动协商 | CGI 协议选择，`1` 强制 ISAPI |
 
 #### `player.logout(deviceId: string): Promise<void>`
 
@@ -468,7 +468,7 @@ export function CameraPanel() {
 | `zeroChannel` | `boolean` | 否 | `false` | 是否播放零通道 |
 | `rtspPort` | `number` | 否 | 自动识别 | RTSP 端口，通常不需要传 |
 | `webSocketPort` | `number` | 否 | 自动识别 | WebSocket 取流端口，端口识别失败时再传 |
-| `useProxy` | `boolean` | 否 | 底层默认 | 是否通过 WebSocket 代理取流 |
+| `useProxy` | `boolean` | 否 | `false` | 是否通过 WebSocket 代理取流；HTTPS 部署及部分设备需置 `true` |
 
 #### `player.stop(windowIndex?: number): Promise<void>`
 
@@ -493,7 +493,7 @@ export function CameraPanel() {
 | `streamType` | [`StreamType`](#streamtype) | 否 | `1` | 码流类型 |
 | `rtspPort` | `number` | 否 | 自动识别 | RTSP 端口 |
 | `webSocketPort` | `number` | 否 | 自动识别 | WebSocket 取流端口 |
-| `useProxy` | `boolean` | 否 | 底层默认 | 是否通过 WebSocket 代理取流 |
+| `useProxy` | `boolean` | 否 | `false` | 是否通过 WebSocket 代理取流；HTTPS 部署及部分设备需置 `true` |
 | `transcode` | `PlaybackTranscode` | 否 | 无 | 转码参数，见下表 |
 
 `PlaybackTranscode`：
@@ -520,8 +520,8 @@ export function CameraPanel() {
 
 | 方法 | 参数 | 返回值 | 说明 |
 | --- | --- | --- | --- |
-| `player.changeLayout(layout)` | `layout:` [`Layout`](#layout) | `Promise<void>` | 切换布局（`1/2/3/4` 对应 `1×1/2×2/3×3/4×4`） |
-| `player.fullScreen(enable?)` | `enable?: boolean` | `Promise<void>` | 全屏切换；`true` 进入，`false` 退出，默认 `true` |
+| `player.changeLayout(layout)` | `layout:` [`Layout`](#layout) `\| number` | `Promise<void>` | 切换布局（`1/2/3/4` 对应 `1×1/2×2/3×3/4×4`，超过 `4` 按 `4×4` 处理） |
+| `player.fullScreen(enable?)` | `enable?: boolean` | `Promise<void>` | 进入全屏播放（无插件模式下底层固定进入全屏，参数仅占位；退出请用 Esc 键） |
 | `player.getWindowStatus(windowIndex?)` | `windowIndex?: number` | `WindowStatus \| null` | 获取单个窗口状态 |
 | `player.getAllWindows()` | 无 | `WindowStatus[]` | 获取底层返回的窗口状态列表 |
 

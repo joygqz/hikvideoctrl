@@ -270,7 +270,11 @@ export class HikPlayer {
     await callPromise<void>(this.#sdk, 'I_ChangeWndNum', layout)
   }
 
-  /** 全屏 / 退出全屏（无插件下 SDK 强制传 true 才生效）。 */
+  /**
+   * 进入全屏播放。
+   * 无插件模式下底层 `I_FullScreen` 固定调用浏览器全屏 API，`enable` 参数仅为兼容签名而保留；
+   * 退出全屏请引导用户按 Esc。
+   */
   async fullScreen(enable: boolean = true): Promise<void> {
     this.#ensureInitialized()
     await callPromise<void>(this.#sdk, 'I_FullScreen', enable)
