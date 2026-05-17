@@ -1191,6 +1191,6 @@ pnpm release      # bumpp + pnpm publish 发版
 
 感谢海康威视提供 [无插件 Web 开发包](https://open.hikvision.com/download/5cda567cf47ae80dd41a54b3?type=20&id=6343bb4b03df46c39032d2ef825eb70d)。本项目仅作为其上层 TypeScript 封装，与海康官方无附属关系。
 
-## License
+## 许可证
 
-[MIT](./LICENSE) © [joygqz](https://github.com/joygqz)
+[MIT](./LICENSE)

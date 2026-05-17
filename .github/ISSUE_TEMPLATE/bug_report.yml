@@ -1,7 +1,7 @@
 name: 🐛 Bug 报告
 description: 报告一个 Bug 或问题
 title: '[Bug]: '
-labels: [bug, 需要确认]
+labels: [bug, needs-triage]
 body:
   - type: markdown
     attributes:
@@ -78,56 +78,18 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: browser
+  - type: textarea
+    id: environment
     attributes:
-      label: 浏览器
-      description: 您使用的是什么浏览器？
-      options:
-        - Chrome
-        - Firefox
-        - Safari
-        - Edge
-        - 其他
+      label: 使用环境
+      description: 请提供您的使用环境信息
+      placeholder: |
+        - 浏览器：Chrome 120
+        - 操作系统：Windows 11 / macOS 14
+        - 框架：Vue 3 / React 18
+        - 海康设备型号：DS-2CD2xxx
     validations:
       required: true
-
-  - type: input
-    id: browser-version
-    attributes:
-      label: 浏览器版本
-      description: 浏览器版本号是？
-      placeholder: 例如：120.0.0.0
-
-  - type: dropdown
-    id: framework
-    attributes:
-      label: 使用的框架
-      description: 您使用的是什么前端框架？
-      options:
-        - Vue 3
-        - Vue 2
-        - React
-        - Angular
-        - Svelte
-        - 原生 JavaScript
-        - 其他
-    validations:
-      required: true
-
-  - type: input
-    id: nodejs-version
-    attributes:
-      label: Node.js 版本
-      description: 您的 Node.js 版本是？
-      placeholder: 例如：18.17.0
-
-  - type: input
-    id: device-info
-    attributes:
-      label: 海康设备信息
-      description: 海康设备型号和固件版本（如果相关）
-      placeholder: 例如：DS-2CD2xxx，固件 V5.7.3
 
   - type: textarea
     id: additional-context
