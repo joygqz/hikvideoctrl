@@ -52,14 +52,13 @@ import {
 /**
  * 海康无插件 WebVideoCtrl 的现代化 TypeScript 客户端。
  *
- * - 一个实例对应"一个插件 + 一组登录设备 + 一组播放窗口"。
- * - SDK 的同步、Promise 与回调三种调用形态统一抽象为 `async/await`。
- * - 通过 `on/off/once` 订阅强类型事件，所有事件均同步派发。
+ * 一个实例对应"一个插件 + 一组登录设备 + 一组播放窗口"。
+ * SDK 的同步 / Promise / 回调三种调用形态统一抽象为 `async/await`。
+ * 通过 `on/off/once` 订阅强类型事件（同步派发）。
  *
- * 推荐使用工厂 {@link createHikPlayer} 创建实例，便于注入测试 SDK 替身。
+ * 推荐使用 {@link createHikPlayer} 创建实例，便于注入测试 SDK 替身。
  */
 export class HikPlayer {
-  // ─────── 内部状态 ───────
   readonly #sdk: WebVideoCtrlSDK
   readonly #emitter = new TypedEmitter<HikPlayerEventMap>()
   readonly #devices = new Map<string, DeviceSession>()
@@ -81,12 +80,12 @@ export class HikPlayer {
 
   // ─────────────────────────── 元信息 ───────────────────────────
 
-  /** 已初始化的播放器对外只读。 */
+  /** 是否已完成初始化。 */
   get isInitialized(): boolean {
     return this.#initialized
   }
 
-  /** 当前选中（活跃）窗口索引；未初始化时为 0。 */
+  /** 当前选中窗口索引；未初始化时为 0。 */
   get activeWindowIndex(): number {
     return this.#activeWindow
   }
@@ -96,7 +95,7 @@ export class HikPlayer {
     return this.#containerId
   }
 
-  /** 注入或解析得到的 SDK 实例（仅用于扩展场景，业务一般不直接访问）。 */
+  /** 底层 SDK 实例，供高级扩展使用。 */
   get sdk(): WebVideoCtrlSDK {
     return this.#sdk
   }
@@ -111,10 +110,8 @@ export class HikPlayer {
   /**
    * 初始化播放器。
    *
-   * 内部依次完成：环境校验 → `I_InitPlugin` → 在 `cbInitPluginComplete` 中
-   * 调用 `I_InsertOBJECTPlugin` 将视图挂载到容器。
-   *
-   * @throws {HikError} 浏览器不支持、容器解析失败或 SDK 初始化失败
+   * 流程：环境校验 → `I_InitPlugin` → `cbInitPluginComplete` 内调用
+   * `I_InsertOBJECTPlugin` 挂载到容器。
    */
   async init(options: PluginInitOptions): Promise<void> {
     if (this.#initialized)
@@ -138,10 +135,9 @@ export class HikPlayer {
 
       const initOptions: SdkInitOptions = {
         iWndowType: layout,
-        // 无插件模式下文档明示 `bNoPlugin` 必须为 true，`bWndFull` 不支持修改
+        // 无插件模式：bNoPlugin 必须 true，bWndFull / iPlayMode 文档明示不可改
         bNoPlugin: true,
         bWndFull: true,
-        // 无插件目前仅支持正常播放模式
         iPlayMode: 2,
         bDebugMode: options.debugMode ?? false,
         szColorProperty: options.colorProperty,
@@ -204,15 +200,13 @@ export class HikPlayer {
   }
 
   /**
-   * 销毁播放器：停止全部播放、释放底层 Worker、清空事件订阅。
-   *
-   * 适合 SPA 路由切换 / 组件卸载时调用，避免 WebSocket 与 Worker 泄漏。
-   * 重复调用安全；销毁后实例不再可用。
+   * 停止全部播放、释放 Worker、清空事件订阅。
+   * 重复调用安全；销毁后实例不再可用。适合 SPA 路由切换 / 组件卸载时调用。
    */
   async destroy(): Promise<void> {
     if (!this.#initialized)
       return
-    // I_StopAll 在尚未播放任何窗口时可能 reject，吞掉以保证销毁流程不中断
+    // 未播放任何窗口时 I_StopAll 可能 reject，吞掉以保证销毁流程不中断
     try {
       await callPromise<void>(this.#sdk, 'I_StopAll')
     }
@@ -234,7 +228,7 @@ export class HikPlayer {
     this.#emitter.clear()
   }
 
-  /** 调整插件渲染尺寸；不传则按容器实际尺寸自适应。 */
+  /** 调整插件渲染尺寸；不传按容器实际尺寸自适应。 */
   resize(width?: number | string, height?: number | string): void {
     this.#ensureInitialized()
     const w = normalizeSize(width, this.#containerElement, 'width', 0)
@@ -244,6 +238,7 @@ export class HikPlayer {
 
   // ─────────────────────────── 事件 ───────────────────────────
 
+  /** 订阅事件，返回取消订阅函数。 */
   on<K extends keyof HikPlayerEventMap>(
     event: K,
     handler: (payload: HikPlayerEventMap[K]) => void,
@@ -251,6 +246,7 @@ export class HikPlayer {
     return this.#emitter.on(event, handler)
   }
 
+  /** 仅触发一次，触发后自动解除订阅。 */
   once<K extends keyof HikPlayerEventMap>(
     event: K,
     handler: (payload: HikPlayerEventMap[K]) => void,
@@ -258,6 +254,7 @@ export class HikPlayer {
     return this.#emitter.once(event, handler)
   }
 
+  /** 取消订阅；不传 handler 则清空该事件全部监听。 */
   off<K extends keyof HikPlayerEventMap>(
     event: K,
     handler?: (payload: HikPlayerEventMap[K]) => void,
@@ -286,7 +283,7 @@ export class HikPlayer {
     return raw ? toPublicWindow(raw) : null
   }
 
-  /** 获取全部窗口（包含未播放占位）。 */
+  /** 全部窗口（含未播放占位）。 */
   getAllWindows(): PublicWindowStatus[] {
     this.#ensureInitialized()
     const list = callSync<SdkWindowInfo[]>(this.#sdk, 'I_GetWndSet') ?? []
@@ -298,10 +295,8 @@ export class HikPlayer {
   /**
    * 登录设备。
    *
-   * 成功后返回的 `DeviceSession.id` 即 SDK 内部使用的 `<host>_<port>` 标识，
-   * 所有后续接口的 `deviceId` 参数都应使用此值。
-   *
-   * @throws {HikError} 参数无效或 SDK 登录失败
+   * 返回的 `DeviceSession.id` 即 SDK 内部的 `<host>_<port>` 标识，
+   * 后续接口的 `deviceId` 参数均应使用此值。
    */
   async login(credentials: DeviceCredentials): Promise<DeviceSession> {
     this.#ensureInitialized()
@@ -348,7 +343,7 @@ export class HikPlayer {
     return session
   }
 
-  /** 登出设备；登出前会自动停止该设备相关的播放窗口并清空 SecretKey。 */
+  /** 登出设备，自动停止相关播放窗口并清空 SecretKey。 */
   async logout(deviceId: string): Promise<void> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
@@ -377,7 +372,7 @@ export class HikPlayer {
 
   // ─────────────────────────── 设备信息 / 通道 ───────────────────────────
 
-  /** 获取设备基本信息（型号、序列号、版本等）。 */
+  /** 设备基本信息（型号、序列号、版本等）。 */
   async getDeviceInfo(deviceId: string): Promise<DeviceInfo | null> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
@@ -468,9 +463,8 @@ export class HikPlayer {
   }
 
   /**
-   * 一次性获取设备的全部通道（合并模拟 / 数字 / 零通道）。
-   *
-   * 任一接口失败仅丢弃该类通道，不会抛出整体异常 —— 便于在能力不全的设备上降级。
+   * 一次性获取设备的全部通道（合并模拟 / 数字 / 零）。
+   * 任一接口失败仅丢弃该类通道，便于在能力不全的设备上降级。
    */
   async getChannels(deviceId: string): Promise<ChannelInfo[]> {
     const [analog, digital, zero] = await Promise.all([
@@ -488,11 +482,7 @@ export class HikPlayer {
 
   // ─────────────────────────── 实时预览 ───────────────────────────
 
-  /**
-   * 开始实时预览。
-   *
-   * @throws {HikError} 设备未登录或 SDK 启播失败
-   */
+  /** 开始实时预览。 */
   async startPreview(deviceId: string, options: PreviewOptions): Promise<void> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
@@ -523,7 +513,7 @@ export class HikPlayer {
     })
   }
 
-  /** 停止当前选中窗口的预览 / 回放。 */
+  /** 停止指定窗口的预览 / 回放，缺省为当前选中窗口。 */
   async stop(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
     const target = windowIndex ?? this.#activeWindow
@@ -536,7 +526,7 @@ export class HikPlayer {
     this.#emitter.emit(event, { deviceId: status.deviceId, windowIndex: target })
   }
 
-  /** 停止全部窗口（无论预览还是回放）。 */
+  /** 停止全部窗口（含预览与回放）。 */
   async stopAll(): Promise<void> {
     this.#ensureInitialized()
     await callPromise<void>(this.#sdk, 'I_StopAll')
@@ -545,13 +535,7 @@ export class HikPlayer {
 
   // ─────────────────────────── 录像回放 ───────────────────────────
 
-  /**
-   * 按时间段开始回放。
-   *
-   * 时间字符串必须严格符合 `yyyy-MM-dd HH:mm:ss`。
-   *
-   * @throws {HikError} 时间区间无效 / 设备未登录 / 启播失败
-   */
+  /** 按时间段开始回放；时间格式必须为 `yyyy-MM-dd HH:mm:ss`。 */
   async startPlayback(deviceId: string, options: PlaybackOptions): Promise<void> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
@@ -601,7 +585,7 @@ export class HikPlayer {
     })
   }
 
-  /** 恢复回放（从暂停 / 单帧返回正常播放）。 */
+  /** 从暂停 / 单帧恢复正常回放。 */
   async resume(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
     await callWithCallback<unknown>(this.#sdk, 'I_Resume', {
@@ -625,7 +609,7 @@ export class HikPlayer {
     })
   }
 
-  /** 获取窗口当前 OSD 时间，格式 `yyyy-MM-dd HH:mm:ss`。 */
+  /** 当前窗口的 OSD 时间，格式 `yyyy-MM-dd HH:mm:ss`。 */
   async getOsdTime(windowIndex?: number): Promise<string> {
     this.#ensureInitialized()
     const raw = await callWithCallback<unknown>(this.#sdk, 'I_GetOSDTime', {
@@ -634,23 +618,25 @@ export class HikPlayer {
     if (typeof raw === 'string')
       return raw
     if (raw instanceof Date)
-      return currentTimestamp() // 不应发生，但保留兜底
+      return currentTimestamp()
     return String(raw ?? '')
   }
 
   // ─────────────────────────── 音频 / 缩放 / 加密 ───────────────────────────
 
+  /** 打开声音。 */
   async openSound(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
     await callPromise<void>(this.#sdk, 'I_OpenSound', windowIndex ?? this.#activeWindow)
   }
 
+  /** 关闭声音。 */
   async closeSound(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
     await callPromise<void>(this.#sdk, 'I_CloseSound', windowIndex ?? this.#activeWindow)
   }
 
-  /** 设置音量。 */
+  /** 设置音量（0-100）。 */
   async setVolume(volume: number, windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
     if (!Number.isFinite(volume) || volume < 0 || volume > 100)
@@ -672,7 +658,7 @@ export class HikPlayer {
 
   /**
    * 启用 3D 放大。
-   * 启用后在画面中按住左键从左上拖到右下放大，反之缩小。
+   * 启用后按住左键从左上拖到右下放大，反之缩小。
    */
   async enable3DZoom(windowIndex?: number, onZoomInfo?: (info: unknown) => void): Promise<void> {
     this.#ensureInitialized()
@@ -693,8 +679,7 @@ export class HikPlayer {
   /** 设置该窗口的码流加密密钥。 */
   async setSecretKey(secretKey: string, windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    // I_SetSecretKey 在 V3.4 文档中返回 Promise，旧版本可能返回 number；
-    // callPromise 同时兼容两种形态：非 thenable 直接 resolve。
+    // V3.4 返回 Promise，旧版本可能返回 number；callPromise 对非 thenable 直接 resolve
     await callPromise<unknown>(
       this.#sdk,
       'I_SetSecretKey',
@@ -708,11 +693,10 @@ export class HikPlayer {
   /**
    * 抓拍当前画面。
    *
-   * - 不传 `onData`：图像保存到浏览器下载文件夹（扩展名为 `.bmp` 时抓 BMP，否则 JPEG）。
-   * - 传 `onData`：仅触发回调，回调入参为原始 Uint8Array，不下载文件。
+   * - 不传 `onData`：保存到浏览器下载文件夹（`.bmp` 抓 BMP，否则 JPEG）。
+   * - 传 `onData`：仅回调原始 Uint8Array，不下载文件。
    *
-   * @returns SDK 抓拍完成后实际使用的文件名（便于业务展示）
-   * @throws {HikError} SDK 返回 -1 或异步 reject
+   * @returns SDK 实际使用的文件名
    */
   async capture(options: CaptureOptions = {}): Promise<string> {
     this.#ensureInitialized()
@@ -749,7 +733,7 @@ export class HikPlayer {
     return fileName
   }
 
-  /** 开始本地录像（保存到浏览器下载文件夹）。 */
+  /** 开始本地录像，保存到浏览器下载文件夹。 */
   async startRecording(options: RecordingOptions = {}): Promise<string> {
     this.#ensureInitialized()
     const windowIndex = options.windowIndex ?? this.#activeWindow
@@ -774,9 +758,7 @@ export class HikPlayer {
 
   /**
    * 搜索指定通道、时间段内的录像。
-   *
-   * SDK 单次最多返回 40 条，`searchPos` 或 `page` 控制翻页。
-   * 返回结果的 `status` 为 `MORE` 时仍有后续数据。
+   * SDK 单次最多返回 40 条，`searchPos` 或 `page` 控制翻页；`status` 为 `MORE` 表示仍有后续数据。
    */
   async searchRecords(deviceId: string, options: RecordSearchOptions): Promise<RecordSearchResult> {
     this.#ensureInitialized()
@@ -831,8 +813,7 @@ export class HikPlayer {
 
   /**
    * 按 `playbackURI` 下载录像。
-   *
-   * @returns SDK 原始返回；V3.4.0 无插件模式通常直接触发浏览器下载且 resolve `undefined`。
+   * V3.4.0 无插件模式通常直接触发浏览器下载并 resolve `undefined`。
    */
   async downloadRecord(
     deviceId: string,
@@ -876,10 +857,7 @@ export class HikPlayer {
 
   // ─────────────────────────── PTZ ───────────────────────────
 
-  /**
-   * 开始 PTZ 动作。
-   * 调用后请记得在松开按键时调用 `ptzStop()`，否则球机会持续运动。
-   */
+  /** 开始 PTZ 动作；松开按键时务必调用 `ptzStop()`，否则球机持续运动。 */
   async ptzStart(options: PtzControlOptions): Promise<void> {
     this.#ensureInitialized()
     await this.#ptzCommand(options, false)
@@ -909,7 +887,7 @@ export class HikPlayer {
 
   // ─────────────────────────── 设备维护 ───────────────────────────
 
-  /** 导出设备配置文件（SDK 会弹出系统保存框）。 */
+  /** 导出设备配置文件（SDK 弹出系统保存框）。 */
   async exportDeviceConfig(deviceId: string, password: string): Promise<unknown> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
@@ -919,7 +897,7 @@ export class HikPlayer {
   /**
    * 导入设备配置文件。
    *
-   * `fileName` 与 `file` 通常来自 `openFileDialog(FILE_DIALOG.File)` 的返回值；
+   * `fileName` 与 `file` 通常来自 `openFileDialog(FILE_DIALOG.File)`。
    * V3.4.0 实际上传浏览器 File 句柄，仅传文件名通常无法完成导入。
    */
   async importDeviceConfig(
@@ -939,28 +917,28 @@ export class HikPlayer {
     )
   }
 
-  /** 恢复出厂参数。`basic` 保留网络与用户，`full` 一律重置。 */
+  /** 恢复出厂参数（`basic` 保留网络与用户，`full` 全量重置）。 */
   async restoreDefault(deviceId: string, mode: RestoreMode): Promise<void> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
     await callWithCallback<unknown>(this.#sdk, 'I_RestoreDefault', deviceId, mode, {})
   }
 
-  /** 重启设备；成功仅表示设备已收到重启指令。 */
+  /** 重启设备；成功仅表示设备已收到指令。 */
   async restart(deviceId: string): Promise<void> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
     await callWithCallback<unknown>(this.#sdk, 'I_Restart', deviceId, {})
   }
 
-  /** 重新连接设备（不会重新登录，仅断线重连）。 */
+  /** 断线重连（不会重新登录）。 */
   async reconnect(deviceId: string): Promise<void> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
     await callWithCallback<unknown>(this.#sdk, 'I_Reconnect', deviceId, {})
   }
 
-  /** 开始固件异步升级；`file` 通常来自 `openFileDialog(FILE_DIALOG.File)`，升级完成后设备需要重启。 */
+  /** 开始固件异步升级；升级完成后设备需要重启。`file` 通常来自 `openFileDialog(FILE_DIALOG.File)`。 */
   async startUpgrade(
     deviceId: string,
     fileName: string,
@@ -971,7 +949,7 @@ export class HikPlayer {
     return callPromise<unknown>(this.#sdk, 'I2_StartUpgrade', deviceId, fileName, options.file ?? undefined)
   }
 
-  /** 查询当前升级进度；不传 deviceId 时仅在单设备登录场景自动推断。 */
+  /** 查询升级进度；不传 `deviceId` 时仅在单设备场景自动推断。 */
   async getUpgradeProgress(deviceId?: string): Promise<{ percent: number, upgrading: boolean }> {
     this.#ensureInitialized()
     const targetDeviceId = this.#resolveDeviceId(deviceId)
@@ -980,11 +958,7 @@ export class HikPlayer {
 
   // ─────────────────────────── 透传 HTTP / 杂项 ───────────────────────────
 
-  /**
-   * 透传 ISAPI 请求到设备。
-   *
-   * 设备登录后内部已持有认证信息，因此 `auth` 一般无需显式传入。
-   */
+  /** 透传 ISAPI 请求到设备；登录后已持有认证信息，`auth` 通常无需显式传入。 */
   async sendHttpRequest(
     deviceId: string,
     uri: string,
@@ -1002,7 +976,7 @@ export class HikPlayer {
     return ensureXmlDocument(raw)
   }
 
-  /** 获取通道字符叠加配置（OSD 文字）。 */
+  /** 通道字符叠加配置（OSD 文字）。 */
   async getTextOverlay(deviceId: string, uri: string): Promise<Document | null> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
@@ -1010,7 +984,7 @@ export class HikPlayer {
     return ensureXmlDocument(raw)
   }
 
-  /** 打开系统文件 / 文件夹选择对话框；返回 `szFileName === '-1'` 表示用户取消。 */
+  /** 打开系统文件 / 文件夹对话框；`szFileName === '-1'` 表示用户取消。 */
   async openFileDialog(type: 0 | 1): Promise<OpenFileDialogResult> {
     this.#ensureInitialized()
     return callPromise<OpenFileDialogResult>(this.#sdk, 'I2_OpenFileDlg', type)
@@ -1038,7 +1012,7 @@ export class HikPlayer {
     throw new HikError('INVALID_ARGUMENT', '请指定 deviceId')
   }
 
-  /** 安全获取并解析 XML：调用失败仅返回 null，便于聚合查询时降级。 */
+  /** 安全获取并解析 XML；失败返回 null，便于聚合查询时降级。 */
   async #fetchXml(method: string, deviceId: string): Promise<Document | null> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
@@ -1060,14 +1034,14 @@ export class HikPlayer {
     })
   }
 
-  /** 登出前关闭该设备相关的全部窗口流，并清空 SecretKey。 */
+  /** 登出前关闭设备相关的全部窗口流，并清空 SecretKey。 */
   async #stopDeviceStreams(deviceId: string): Promise<void> {
     const windows = (callSync<SdkWindowInfo[]>(this.#sdk, 'I_GetWndSet') ?? []).filter((wnd): wnd is SdkWindowInfo => {
       if (!wnd)
         return false
       if (wnd.szDeviceIdentify === deviceId)
         return true
-      // 兼容老版本 SDK：当 szDeviceIdentify 缺失时根据 IP 前缀匹配
+      // 兼容老版本 SDK：szDeviceIdentify 缺失时按 IP 前缀匹配
       return Boolean(wnd.szIP && deviceId.startsWith(`${wnd.szIP}_`))
     })
 
@@ -1082,7 +1056,7 @@ export class HikPlayer {
         await callPromise<unknown>(this.#sdk, 'I_SetSecretKey', '', wnd.iIndex)
       }
       catch {
-        /* 忽略：未启用加密的设备调用清除会返回失败 */
+        // 未启用加密的设备调用清除会返回失败，忽略
       }
     }))
   }
@@ -1090,7 +1064,7 @@ export class HikPlayer {
 
 // ─────────────────────────── 工厂 / 工具 ───────────────────────────
 
-/** 创建播放器实例。 */
+/** 创建 `HikPlayer` 实例的工厂函数，便于注入 SDK 替身。 */
 export function createHikPlayer(options: HikPlayerOptions = {}): HikPlayer {
   return new HikPlayer(options)
 }
@@ -1128,12 +1102,12 @@ function toPublicWindow(raw: SdkWindowInfo): PublicWindowStatus {
   }
 }
 
-/** 将设备返回的 `2013-12-23T03:06:58Z` 归一化为 `2013-12-23 03:06:58`。 */
+/** `2013-12-23T03:06:58Z` → `2013-12-23 03:06:58`。 */
 function normalizeIsoLikeTime(value: string): string {
   return value.replace('T', ' ').replace('Z', '')
 }
 
-/** 从 `playbackURI` 中抽取 `name=` 之后到 `&size=` 之前的录像文件名。 */
+/** 抽取 `playbackURI` 中 `name=` 与 `&size=` 之间的录像文件名。 */
 function extractFileNameFromUri(uri: string): string {
   const nameIdx = uri.indexOf('name=')
   if (nameIdx < 0)

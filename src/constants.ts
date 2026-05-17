@@ -1,19 +1,16 @@
 /**
- * 与 SDK 一一对应的常量集合。
- * 所有常量均使用 `as const`，可直接派生字面量联合类型并参与 TS 严格匹配。
- *
- * 数值/取值来源：`WebSDK3.4_无插件开发包编程指南` 官方文档。
+ * 与 SDK 一一对应的常量集合。所有常量均使用 `as const` 以派生字面量联合类型。
+ * 取值来源：`WebSDK3.4_无插件开发包编程指南`。
  */
 
 // ─────────────────────────── 协议与端口 ───────────────────────────
 
-/** SDK 内部使用的协议数值；`toProtocolValue` 完成 `'http' | 'https'` 与之的互转。 */
+/** SDK 内部协议数值；与字符串形态的互转见 `toProtocolValue`。 */
 export const PROTOCOL = {
   HTTP: 1,
   HTTPS: 2,
 } as const
 
-/** 各协议的默认端口。 */
 export const DEFAULT_PORT = {
   HTTP: 80,
   HTTPS: 443,
@@ -24,19 +21,15 @@ export const DEFAULT_PORT = {
 
 /** 码流类型，传给 `I_StartRealPlay` / `I_StartPlayback` / `I_RecordSearch`。 */
 export const STREAM_TYPE = {
-  /** 主码流（高清，推荐预览） */
   Main: 1,
-  /** 子码流（标清，多画面或弱网） */
   Sub: 2,
-  /** 第三码流（部分设备支持） */
   Third: 3,
 } as const
 
 /**
- * 窗口分屏类型，传给 `I_InitPlugin.iWndowType` 与 `I_ChangeWndNum`。
+ * 分屏布局，传给 `I_InitPlugin.iWndowType` 与 `I_ChangeWndNum`。
  *
- * 注意：SDK 取值并非平方关系，`1/2/3/4` 直接对应 `1x1 / 2x2 / 3x3 / 4x4`；
- * 数值超过 4 一律按 4x4（16 分屏）处理。
+ * 取值非平方关系：`1/2/3/4` 直接对应 `1x1 / 2x2 / 3x3 / 4x4`，超过 4 按 4x4 处理。
  */
 export const LAYOUT = {
   Single: 1,
@@ -45,10 +38,7 @@ export const LAYOUT = {
   Sixteen: 4,
 } as const
 
-/**
- * `I_GetWindowStatus().iPlayStatus` 的取值。
- * 同样作用于 `I_GetWndSet()` 列表中的每个元素。
- */
+/** `I_GetWindowStatus().iPlayStatus` / `I_GetWndSet()` 元素的播放状态。 */
 export const PLAY_STATUS = {
   Idle: 0,
   Preview: 1,
@@ -62,10 +52,9 @@ export const PLAY_STATUS = {
 // ─────────────────────────── PTZ ───────────────────────────
 
 /**
- * PTZ 控制类型，对应 `I_PTZControl(iPTZIndex, bStop, options)` 的 `iPTZIndex`。
+ * PTZ 控制类型，对应 `I_PTZControl` 的 `iPTZIndex`。
  *
- * ⚠️ 海康文档原文：`5-左上，6-左下，7-右上，8-右下`，
- * 切勿与"先上后右"的直觉顺序混淆。
+ * 海康文档原文：`5-左上，6-左下，7-右上，8-右下`，注意命名顺序与直觉相反。
  */
 export const PTZ_COMMAND = {
   Up: 1,
@@ -76,7 +65,7 @@ export const PTZ_COMMAND = {
   DownLeft: 6,
   UpRight: 7,
   DownRight: 8,
-  /** 自转（自动巡航开始/停止） */
+  /** 自动巡航开关 */
   AutoPan: 9,
   ZoomIn: 10,
   ZoomOut: 11,
@@ -86,19 +75,15 @@ export const PTZ_COMMAND = {
   IrisClose: 15,
 } as const
 
-/** PTZ 速度合法区间，超出后封装层会抛出 `INVALID_ARGUMENT`。 */
+/** PTZ 速度合法区间，超出抛出 `INVALID_ARGUMENT`。 */
 export const PTZ_SPEED_RANGE = { min: 1, max: 7, default: 4 } as const
 
 // ─────────────────────────── 录像 / 抓拍 ───────────────────────────
 
-/** `I_RecordSearch` 单次返回的最大条数；分页时按此步长递增 `iSearchPos`。 */
+/** `I_RecordSearch` 单次返回上限；分页按此步长递增 `iSearchPos`。 */
 export const RECORD_SEARCH_PAGE_SIZE = 40
 
-/**
- * `I2_OpenFileDlg` 的对话框类型。
- *
- * 文档原文：`0：文件夹  1：文件`。
- */
+/** `I2_OpenFileDlg` 对话框类型（`0` 文件夹，`1` 文件）。 */
 export const FILE_DIALOG = {
   Directory: 0,
   File: 1,
@@ -106,7 +91,7 @@ export const FILE_DIALOG = {
 
 /**
  * `I_RestoreDefault` 的 `szMode` 取值。
- * - `basic`：简单恢复，保留用户、网络等基础配置
+ * - `basic`：保留用户与网络等基础配置
  * - `full`：完全恢复，包括所有用户信息
  */
 export const RESTORE_MODE = {
@@ -116,7 +101,7 @@ export const RESTORE_MODE = {
 
 // ─────────────────────────── 转码回放 ───────────────────────────
 
-/** 转码回放 `TransFrameRate` 档位（字符串），见官方文档。 */
+/** 转码回放 `TransFrameRate` 档位。 */
 export const TRANSCODE_FRAME_RATE = {
   All: '0',
   Fps1: '5',
@@ -140,7 +125,6 @@ export const TRANSCODE_RESOLUTION = {
   QCIF: '2',
   /** 4CIF / D1 */
   D1: '3',
-  /** 与源一致 */
   Auto: '255',
 } as const
 
@@ -176,10 +160,7 @@ export const TRANSCODE_BITRATE = {
 
 // ─────────────────────────── 事件 / 错误码 ───────────────────────────
 
-/**
- * 插件 `cbEvent` 第一个参数（异常事件类型）。
- * 第二个参数为窗口号，部分事件附带第三个参数。
- */
+/** 插件 `cbEvent` 的事件类型（第一个参数）。 */
 export const PLUGIN_EVENT = {
   /** 回放异常 / 取流被动断开 */
   PlayAbnormal: 0,
@@ -187,14 +168,11 @@ export const PLUGIN_EVENT = {
   PlaybackEnd: 2,
   /** 对讲失败 */
   AudioTalkFail: 3,
-  /** 硬盘空间不足（录像存储） */
+  /** 硬盘空间不足 */
   NoFreeSpace: 21,
 } as const
 
-/**
- * 设备/插件运行时错误码与中文描述。
- * 触发场景：`cbPluginErrorHandler(wnd, code, err)`，或部分流相关回调的 `iErrorCode`。
- */
+/** 设备/插件运行时错误码与中文描述（来源：`cbPluginErrorHandler` 与流回调 `iErrorCode`）。 */
 export const SDK_RUNTIME_ERROR = Object.freeze({
   1001: '码流传输过程异常',
   1002: '回放结束',
@@ -222,7 +200,7 @@ export const SDK_RUNTIME_ERROR = Object.freeze({
 
 // ─────────────────────────── 字面量类型 ───────────────────────────
 
-/** 协议字符串（库面向用户的形态） */
+/** 面向用户的协议字符串形态。 */
 export type ProtocolScheme = 'http' | 'https'
 
 export type Protocol = typeof PROTOCOL[keyof typeof PROTOCOL]

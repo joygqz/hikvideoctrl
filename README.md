@@ -3,9 +3,9 @@
 [![npm version](https://img.shields.io/npm/v/hikvideoctrl.svg)](https://www.npmjs.com/package/hikvideoctrl)
 [![license](https://img.shields.io/npm/l/hikvideoctrl.svg)](./LICENSE)
 
-海康威视无插件 Web 视频能力的 TypeScript 封装。基于官方 `WebSDK_noPlugin V3.4.0`，将同步、Promise、回调三种调用形态统一为 `async/await`，并提供强类型常量、事件与错误。
+海康威视无插件 Web 视频 SDK 的 TypeScript 封装，基于官方 `WebSDK_noPlugin V3.4.0`。将底层同步/回调/Promise 混合调用形态统一为 `async/await` 接口，提供完整类型定义、语义化事件模型与结构化错误处理。
 
-适用于 Vue、React、Svelte 或原生前端项目中的设备登录、实时预览、录像回放、抓拍、录像搜索、云台控制、设备维护等监控业务。
+适用于 Vue、React、Svelte 等现代前端框架及原生项目，覆盖设备接入、实时预览、录像回放、抓拍录像、云台控制与设备维护等完整监控业务流。
 
 ## 目录
 
@@ -14,7 +14,6 @@
 - [准备静态资源](#准备静态资源)
 - [运行环境](#运行环境)
 - [快速开始](#快速开始)
-- [推荐接入流程](#推荐接入流程)
 - [核心概念](#核心概念)
 - [Vue 3 示例](#vue-3-示例)
 - [React 示例](#react-示例)
@@ -48,11 +47,11 @@
 
 ## 特性
 
-- **Promise 优先**：登录、预览、回放、抓拍、PTZ、录像、升级等操作可直接 `await`，失败统一抛出 `HikError`。
-- **TypeScript 友好**：导出所有常量字面量类型、参数类型、事件负载类型与错误码联合类型。
-- **SPA 友好**：`destroy()` 自动停止播放、释放底层 Worker、清空事件监听，避免组件卸载后的资源泄漏。
-- **零运行时依赖**：仅依赖海康原生 `webVideoCtrl.js` 及其同目录静态资源，无任何 npm 依赖。
-- **可渐进接入**：常用能力封装为高级 API；特殊 ISAPI 请求与未封装方法可通过 `sendHttpRequest()` 与低级桥接 API 直接调用。
+- **全面 Promise 化**：登录、预览、回放、抓拍、PTZ、录像、升级等操作均支持 `await`，失败统一抛出 `HikError`。
+- **完整 TypeScript 支持**：导出所有常量字面量类型、参数类型、事件负载类型与错误码联合类型，消除 `any` 传递。
+- **资源自动回收**：`destroy()` 自动停止播放、释放底层 Worker、清空事件监听，避免组件卸载后的内存与连接泄漏。
+- **零运行时依赖**：仅依赖海康原生 `webVideoCtrl.js` 及其同目录静态资源，不引入任何 npm 依赖。
+- **渐进式接入**：高频能力封装为高级 API；特殊 ISAPI 请求与未封装方法可通过 `sendHttpRequest()` 与低级桥接 API 直接透传。
 
 ## 安装
 
@@ -64,7 +63,7 @@ npm i hikvideoctrl
 yarn add hikvideoctrl
 ```
 
-播放内核、解码 Worker、加密脚本等底层静态资源需要放到 Web 项目静态目录中。
+播放内核、解码 Worker、加密脚本等底层静态资源须复制到 Web 项目静态目录，不由 npm 包分发。
 
 ## 准备静态资源
 
@@ -150,22 +149,11 @@ await player.capture({ fileName: 'snapshot.jpg' })
 await player.destroy()
 ```
 
-## 推荐接入流程
-
-1. 复制 `codebase` 静态资源。
-2. 在页面创建视频容器，并确保容器有宽高。
-3. 调用 `loadWebVideoCtrl('/codebase/webVideoCtrl.js')` 加载底层脚本。
-4. 调用 `createHikPlayer()` 创建播放器实例。
-5. 调用 `player.init()` 初始化窗口。
-6. 调用 `player.login()` 登录设备，保存返回的 `device.id`。
-7. 调用 `player.getChannels()` 获取通道，再进行预览、回放、抓拍或云台控制。
-8. 页面卸载时调用 `player.destroy()`。
-
 ## 核心概念
 
 ### Player 实例
 
-一个 `HikPlayer` 实例对应一个视频区域、一组选中窗口和一批已登录设备。多个视频区域请创建多个实例，并使用独立容器。
+一个 `HikPlayer` 实例对应一个视频区域、一组播放窗口与一组已登录设备。如需同时展示多个独立视频区域，请为每个区域创建独立实例，并挂载至不同容器。
 
 ```ts
 const player = createHikPlayer()
@@ -173,7 +161,7 @@ const player = createHikPlayer()
 
 ### deviceId
 
-`login()` 成功后返回 `DeviceSession`。后续 API 的 `deviceId` 都传 `device.id`，不要自己拼字符串。
+`login()` 成功后返回 `DeviceSession`。后续所有需要 `deviceId` 的 API 均应传入 `device.id`，请勿手动拼接设备标识符。
 
 ```ts
 const device = await player.login({ host: '192.168.1.64', username: 'admin', password: 'pwd' })
@@ -192,7 +180,7 @@ await player.startPreview(device.id, { channel: 2, windowIndex: 1 })
 
 ### channel
 
-通道来自 `getChannels()`。返回的 `id` 是字符串，播放时转成数字传入。
+通道列表通过 `getChannels()` 获取。返回的 `channel.id` 为字符串类型，传入播放 API 时需转换为数字。
 
 ```ts
 const channels = await player.getChannels(device.id)
@@ -215,14 +203,11 @@ await player.startPlayback(device.id, {
 
 ### 代理与端口
 
-内网 HTTP 直连场景通常不需要任何额外参数，SDK 会自动协商端口。遇到 HTTPS、跨网段或 WebSocket 直连失败时：
+内网 HTTP 直连场景通常无需额外参数，SDK 自动协商端口。遇到 HTTPS 部署、跨网段或 WebSocket 直连失败时：
 
-1. 在 Web 服务侧配置 WebSocket 代理（参考官方 Nginx 示例）。
+1. 在 Web 服务侧配置 WebSocket 代理（参考官方 Nginx 示例：`/ISAPI`、`/SDK`、`/webSocketVideoCtrlProxy`）。
 2. 播放时传 `useProxy: true`。
-3. 自动协商端口失败时显式传 `webSocketPort`（对应 SDK 内部 `iWSPort`）。
-4. 部分 RTSP 链路环境下额外传 `rtspPort`（对应 SDK 内部 `iRtspPort`）。
-
-官方 Nginx 示例通过 `/ISAPI`、`/SDK` 转发设备 HTTP 接口，通过 `/webSocketVideoCtrlProxy` 转发 WebSocket 取流。底层 SDK 通过 `webVideoCtrlProxy`、`webVideoCtrlProxyWs`、`webVideoCtrlProxyWss` 等 Cookie 传递真实设备地址；自建网关需兼容这些入口。
+3. 自动协商失败时显式传 `webSocketPort`，必要时再传 `rtspPort`。
 
 ```ts
 await player.startPreview(device.id, {
@@ -236,7 +221,8 @@ await player.startPreview(device.id, {
 
 ```vue
 <script setup lang="ts">
-import { createHikPlayer, loadWebVideoCtrl, type HikPlayer } from 'hikvideoctrl'
+import type { HikPlayer } from 'hikvideoctrl'
+import { createHikPlayer, loadWebVideoCtrl, STREAM_TYPE } from 'hikvideoctrl'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 const containerRef = ref<HTMLDivElement>()
@@ -246,10 +232,24 @@ onMounted(async () => {
   await loadWebVideoCtrl('/codebase/webVideoCtrl.js')
   player = createHikPlayer()
   await player.init({ container: containerRef.value!, width: '100%', height: '100%' })
+
+  const device = await player.login({
+    host: '192.168.1.64',
+    username: 'admin',
+    password: 'YourPassword',
+  })
+  const [first] = await player.getChannels(device.id)
+  if (first) {
+    await player.startPreview(device.id, {
+      channel: Number(first.id),
+      streamType: STREAM_TYPE.Sub,
+    })
+  }
 })
 
 onBeforeUnmount(async () => {
   await player?.destroy()
+  player = null
 })
 </script>
 
@@ -261,74 +261,82 @@ onBeforeUnmount(async () => {
 ## React 示例
 
 ```tsx
-import { createHikPlayer, loadWebVideoCtrl } from 'hikvideoctrl'
+import type { HikPlayer } from 'hikvideoctrl'
+import { createHikPlayer, loadWebVideoCtrl, STREAM_TYPE } from 'hikvideoctrl'
 import { useEffect, useRef } from 'react'
 
 export function CameraPanel() {
-  const ref = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let disposed = false
-    let player: ReturnType<typeof createHikPlayer> | null = null
+    let player: HikPlayer | null = null
 
     ;(async () => {
       await loadWebVideoCtrl('/codebase/webVideoCtrl.js')
-      if (disposed || !ref.current)
+      if (disposed || !containerRef.current)
         return
+
       player = createHikPlayer()
-      await player.init({ container: ref.current, width: '100%', height: '100%' })
+      await player.init({ container: containerRef.current, width: '100%', height: '100%' })
+
+      const device = await player.login({
+        host: '192.168.1.64',
+        username: 'admin',
+        password: 'YourPassword',
+      })
+      const [first] = await player.getChannels(device.id)
+      if (first) {
+        await player.startPreview(device.id, {
+          channel: Number(first.id),
+          streamType: STREAM_TYPE.Sub,
+        })
+      }
     })().catch(console.error)
 
     return () => {
       disposed = true
       player?.destroy().catch(console.error)
+      player = null
     }
   }, [])
 
-  return <div ref={ref} style={{ width: 960, height: 540 }} />
+  return <div ref={containerRef} style={{ width: 960, height: 540 }} />
 }
 ```
 
 ## 完整 API 参考
 
-公开 API、参数、返回值和常用类型如下。优先使用 `HikPlayer` 高级 API；特殊能力可用低级桥接 API。
+以下列出所有公开 API 的参数签名、返回值与常用类型说明。优先使用 `HikPlayer` 高级 API；需要调用底层未封装方法时，可使用低级桥接 API。
 
 ### 加载与创建
 
 > 调用顺序：`loadWebVideoCtrl()` → `createHikPlayer()` → `player.init()` → 其他 API。
 
-#### `loadWebVideoCtrl(scriptUrl, options?)`
+#### `loadWebVideoCtrl(scriptUrl: string, options?: LoadWebVideoCtrlOptions): Promise<WebVideoCtrlSDK>`
 
-加载底层 `webVideoCtrl.js`，并等待 `window.WebVideoCtrl` 就绪。脚本同源、`src` 完全相同时默认复用已存在的 `<script>` 节点。`scriptUrl` 为 `webVideoCtrl.js` 的访问地址；`options` 为可选 `LoadWebVideoCtrlOptions`：
+加载底层 `webVideoCtrl.js`，等待 `window.WebVideoCtrl` 就绪。`src` 相同时默认复用已有 `<script>` 节点。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `timeout` | `number` | 否 | `15000` | 等待就绪的最长毫秒数 |
 | `strategy` | `'reuse' \| 'fresh'` | 否 | `'reuse'` | 复用已有脚本或强制插入新脚本 |
 
-返回：`Promise<WebVideoCtrlSDK>`。
+#### `createHikPlayer(options?: HikPlayerOptions): HikPlayer`
 
-#### `createHikPlayer(options?)`
-
-创建 `HikPlayer` 实例。`options` 为可选 `HikPlayerOptions`：
+创建 `HikPlayer` 实例。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `sdk` | `WebVideoCtrlSDK` | 否 | 读取全局 `window.WebVideoCtrl` | 注入底层 SDK，常用于测试 |
 
-返回：`HikPlayer`。
+#### `new HikPlayer(options?: HikPlayerOptions)`
 
-#### `new HikPlayer(options?)`
+直接构造播放器实例，参数与 `createHikPlayer()` 相同。
 
-直接构造播放器实例，参数与 `createHikPlayer(options?)` 相同。
-
-#### `isNoPluginSupported()`
+#### `isNoPluginSupported(): boolean`
 
 检测无插件模式可用性。内部读取 `window.WebVideoCtrl?.I_SupportNoPlugin?.()`，因此必须先 `loadWebVideoCtrl()` 加载底层脚本；脚本未加载时返回 `false`。
-
-参数：无。
-
-返回：`boolean`。
 
 ### 实例属性与状态
 
@@ -339,19 +347,15 @@ export function CameraPanel() {
 | `player.containerId` | `string \| null` | 当前挂载容器 id，未初始化时为 `null` |
 | `player.sdk` | `WebVideoCtrlSDK` | 底层 SDK 实例，供扩展场景使用 |
 
-#### `player.supportsNoPlugin()`
+#### `player.supportsNoPlugin(): boolean`
 
 检测当前实例所使用的底层 SDK 是否支持无插件模式。
 
-参数：无。
-
-返回：`boolean`。
-
 ### 生命周期
 
-#### `player.init(options)`
+#### `player.init(options: PluginInitOptions): Promise<void>`
 
-初始化播放器窗口。调用任何设备或播放 API 前必须先初始化。`options` 为 `PluginInitOptions`：
+初始化播放器窗口，调用任何设备或播放 API 前必须先执行。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -368,17 +372,11 @@ export function CameraPanel() {
 | `onPerformanceLack` | `() => void` | 否 | 无 | 性能不足回调 |
 | `onSecretKeyError` | `(windowIndex: number) => void` | 否 | 无 | 码流加密密钥错误回调 |
 
-返回：`Promise<void>`。
-
-#### `player.destroy()`
+#### `player.destroy(): Promise<void>`
 
 停止播放、释放底层 Worker、清空设备和事件状态。重复调用安全。
 
-参数：无。
-
-返回：`Promise<void>`。
-
-#### `player.resize(width?, height?)`
+#### `player.resize(width?: number | string, height?: number | string): void`
 
 调整播放器尺寸。
 
@@ -387,33 +385,27 @@ export function CameraPanel() {
 | `width` | `number \| string` | 否 | 容器宽度 | 新宽度，支持数字、`px`、`%` |
 | `height` | `number \| string` | 否 | 容器高度 | 新高度，支持数字、`px`、`%` |
 
-返回：`void`。
-
 ### 事件订阅
 
-#### `player.on(event, handler)`
+#### `player.on(event: keyof HikPlayerEventMap, handler: (payload) => void): () => void`
 
-订阅事件。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `event` | `keyof HikPlayerEventMap` | 是 | 无 | 事件名 |
-| `handler` | `(payload) => void` | 是 | 无 | 事件处理函数 |
-
-返回：`() => void`，调用后取消本次订阅。
-
-#### `player.once(event, handler)`
-
-订阅一次性事件。
+订阅事件，返回取消订阅函数。
 
 | 参数 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `event` | `keyof HikPlayerEventMap` | 是 | 无 | 事件名 |
 | `handler` | `(payload) => void` | 是 | 无 | 事件处理函数 |
 
-返回：`() => void`，调用后取消本次订阅。
+#### `player.once(event: keyof HikPlayerEventMap, handler: (payload) => void): () => void`
 
-#### `player.off(event, handler?)`
+订阅一次性事件，触发后自动解除，返回取消订阅函数。
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `event` | `keyof HikPlayerEventMap` | 是 | 无 | 事件名 |
+| `handler` | `(payload) => void` | 是 | 无 | 事件处理函数 |
+
+#### `player.off(event: keyof HikPlayerEventMap, handler?: (payload) => void): void`
 
 取消订阅。
 
@@ -422,13 +414,11 @@ export function CameraPanel() {
 | `event` | `keyof HikPlayerEventMap` | 是 | 无 | 事件名 |
 | `handler` | `(payload) => void` | 否 | 无 | 指定处理函数；不传则清空该事件 |
 
-返回：`void`。
-
 ### 设备与通道
 
-#### `player.login(credentials)`
+#### `player.login(credentials: DeviceCredentials): Promise<DeviceSession>`
 
-登录设备。`credentials` 为 `DeviceCredentials`：
+登录设备。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -446,17 +436,9 @@ export function CameraPanel() {
 | `async` | `boolean` | 否 | 底层默认 | 是否异步交互 |
 | `cgi` | `number` | 否 | 底层默认 | CGI 协议选择 |
 
-返回：`Promise<DeviceSession>`。
+#### `player.logout(deviceId: string): Promise<void>`
 
-#### `player.logout(deviceId)`
-
-登出设备，登出前会尝试停止相关播放窗口。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `deviceId` | `string` | 是 | 无 | `login()` 返回的设备 id |
-
-返回：`Promise<void>`。
+登出设备，登出前自动停止相关播放窗口。
 
 #### 设备查询方法
 
@@ -474,9 +456,9 @@ export function CameraPanel() {
 
 ### 实时预览
 
-#### `player.startPreview(deviceId, options)`
+#### `player.startPreview(deviceId: string, options: PreviewOptions): Promise<void>`
 
-开始实时预览。`deviceId` 为 `login()` 返回的设备 id；`options` 为 `PreviewOptions`：
+开始实时预览。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -488,31 +470,19 @@ export function CameraPanel() {
 | `webSocketPort` | `number` | 否 | 自动识别 | WebSocket 取流端口，端口识别失败时再传 |
 | `useProxy` | `boolean` | 否 | 底层默认 | 是否通过 WebSocket 代理取流 |
 
-返回：`Promise<void>`。
+#### `player.stop(windowIndex?: number): Promise<void>`
 
-#### `player.stop(windowIndex?)`
+停止指定窗口的预览或回放，不传则停止当前窗口。
 
-停止指定窗口的预览或回放。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `windowIndex` | `number` | 否 | 当前窗口 | 要停止的窗口，从 `0` 开始 |
-
-返回：`Promise<void>`。
-
-#### `player.stopAll()`
+#### `player.stopAll(): Promise<void>`
 
 停止所有窗口。
 
-参数：无。
-
-返回：`Promise<void>`。
-
 ### 回放控制
 
-#### `player.startPlayback(deviceId, options)`
+#### `player.startPlayback(deviceId: string, options: PlaybackOptions): Promise<void>`
 
-按时间段开始回放。`deviceId` 为 `login()` 返回的设备 id；`options` 为 `PlaybackOptions`：
+按时间段开始回放。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -533,8 +503,6 @@ export function CameraPanel() {
 | `frameRate` | [`TranscodeFrameRate`](#transcodeframerate) | 否 | 无 | 转码帧率档位 |
 | `resolution` | [`TranscodeResolution`](#transcoderesolution) | 否 | 无 | 转码分辨率档位 |
 | `bitrate` | [`TranscodeBitrate`](#transcodebitrate) | 否 | 无 | 转码码率档位 |
-
-返回：`Promise<void>`。
 
 #### 回放操作方法
 
@@ -572,9 +540,9 @@ export function CameraPanel() {
 
 ### 抓拍录像与下载
 
-#### `player.capture(options?)`
+#### `player.capture(options?: CaptureOptions): Promise<string>`
 
-抓拍当前窗口。`options` 为可选 `CaptureOptions`：
+抓拍当前窗口，返回实际使用的文件名。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -582,11 +550,9 @@ export function CameraPanel() {
 | `windowIndex` | `number` | 否 | 当前窗口 | 抓拍窗口 |
 | `onData` | `(data: Uint8Array) => void \| Promise<void>` | 否 | 无 | 接收图片字节；传入后不触发浏览器下载 |
 
-返回：`Promise<string>`，值为实际使用的文件名。
+#### `player.startRecording(options?: RecordingOptions): Promise<string>`
 
-#### `player.startRecording(options?)`
-
-开始浏览器本地录像。`options` 为可选 `RecordingOptions`：
+开始浏览器本地录像，返回实际使用的文件名。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -594,21 +560,13 @@ export function CameraPanel() {
 | `windowIndex` | `number` | 否 | 当前窗口 | 录像窗口 |
 | `byDateDirectory` | `boolean` | 否 | `true` | 是否按日期创建目录 |
 
-返回：`Promise<string>`，值为实际使用的文件名。
+#### `player.stopRecording(windowIndex?: number): Promise<void>`
 
-#### `player.stopRecording(windowIndex?)`
+停止本地录像，不传则停止当前窗口。
 
-停止本地录像。
+#### `player.searchRecords(deviceId: string, options: RecordSearchOptions): Promise<RecordSearchResult>`
 
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `windowIndex` | `number` | 否 | 当前窗口 | 录像窗口 |
-
-返回：`Promise<void>`。
-
-#### `player.searchRecords(deviceId, options)`
-
-搜索录像。`deviceId` 为 `login()` 返回的设备 id；`options` 为 `RecordSearchOptions`：
+搜索录像。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -616,24 +574,20 @@ export function CameraPanel() {
 | `startTime` | `string` | 是 | 无 | 起始时间，格式 `yyyy-MM-dd HH:mm:ss` |
 | `endTime` | `string` | 是 | 无 | 结束时间，格式 `yyyy-MM-dd HH:mm:ss` |
 | `streamType` | [`StreamType`](#streamtype) | 否 | `1` | 码流类型 |
-| `searchPos` | `number` | 否 | 按 `page` 计算 | 搜索起点，通常为 `0/40/80...` |
-| `page` | `number` | 否 | `1` | 1 基页码，自动换算为搜索起点 |
+| `searchPos` | `number` | 否 | `(page - 1) * 40` | 搜索起点，必须为 40 的倍数；优先级高于 `page` |
+| `page` | `number` | 否 | `1` | 1 基页码 |
 
-返回：`Promise<RecordSearchResult>`。
+#### `player.downloadRecord(deviceId: string, playbackUri: string, fileName: string, options?: DownloadOptions): Promise<unknown>`
 
-#### `player.downloadRecord(deviceId, playbackUri, fileName, options?)`
-
-按录像搜索结果中的 `playbackUri` 下载录像。`deviceId` 为 `login()` 返回的设备 id；`playbackUri` 为 `RecordMatch.playbackUri`；`fileName` 为下载文件名；`options` 为可选 `DownloadOptions`：
+按 `RecordMatch.playbackUri` 下载录像，`fileName` 为本地保存文件名。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `byDateDirectory` | `boolean` | 否 | `true` | 是否按日期创建目录 |
 
-返回：`Promise<unknown>`。
+#### `player.downloadRecordByTime(deviceId: string, playbackUri: string, options: DownloadByTimeOptions): Promise<unknown>`
 
-#### `player.downloadRecordByTime(deviceId, playbackUri, options)`
-
-按时间段下载录像。`deviceId` 为 `login()` 返回的设备 id；`playbackUri` 为 `RecordMatch.playbackUri`；`options` 为 `DownloadByTimeOptions`：
+按时间段下载录像，`playbackUri` 来自 `RecordMatch.playbackUri`。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -642,21 +596,17 @@ export function CameraPanel() {
 | `endTime` | `string` | 是 | 无 | 结束时间，格式 `yyyy-MM-dd HH:mm:ss` |
 | `byDateDirectory` | `boolean` | 否 | `true` | 是否按日期创建目录 |
 
-返回：`Promise<unknown>`。
-
 ### PTZ 云台
 
-#### `player.ptzStart(options)`
+#### `player.ptzStart(options: PtzControlOptions): Promise<void>`
 
-开始云台动作。`options` 为 `PtzControlOptions`：
+开始云台动作。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `action` | [`PtzCommand`](#ptzcommand) `\| number` | 是 | 无 | 控制动作 |
 | `speed` | `number` | 否 | `4` | 速度，范围 `1-7` |
 | `windowIndex` | `number` | 否 | 当前窗口 | 操作窗口 |
-
-返回：`Promise<void>`。
 
 #### PTZ 其它方法
 
@@ -676,32 +626,28 @@ export function CameraPanel() {
 | `player.reconnect(deviceId)` | `deviceId: string` | `Promise<void>` | 重新连接设备 |
 | `player.getUpgradeProgress(deviceId?)` | `deviceId?: string` | `Promise<{ percent: number, upgrading: boolean }>` | 查询升级进度 |
 
-#### `player.importDeviceConfig(deviceId, fileName, options?)`
+#### `player.importDeviceConfig(deviceId: string, fileName: string, options?: ImportDeviceConfigOptions): Promise<unknown>`
 
-导入设备配置。`deviceId` 为 `login()` 返回的设备 id；`fileName` 为 `openFileDialog()` 返回的 `szFileName`；`options` 为可选 `ImportDeviceConfigOptions`：
+导入设备配置，`fileName` 取自 `openFileDialog()` 返回的 `szFileName`。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `password` | `string` | 否 | 无 | 配置文件密码 |
 | `file` | `File \| null` | 否 | 无 | `openFileDialog()` 返回的 `file` |
 
-返回：`Promise<unknown>`。
+#### `player.startUpgrade(deviceId: string, fileName: string, options?: StartUpgradeOptions): Promise<unknown>`
 
-#### `player.startUpgrade(deviceId, fileName, options?)`
-
-开始固件升级。`deviceId` 为 `login()` 返回的设备 id；`fileName` 为 `openFileDialog()` 返回的 `szFileName`；`options` 为可选 `StartUpgradeOptions`：
+开始固件升级，`fileName` 取自 `openFileDialog()` 返回的 `szFileName`。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `file` | `File \| null` | 否 | 无 | `openFileDialog()` 返回的 `file` |
 
-返回：`Promise<unknown>`。
-
 ### 透传请求与文件选择
 
-#### `player.sendHttpRequest(deviceId, uri, options?)`
+#### `player.sendHttpRequest(deviceId: string, uri: string, options?: HttpRequestOptions): Promise<Document | null>`
 
-发送设备 ISAPI 请求。`deviceId` 为 `login()` 返回的设备 id；`uri` 为 ISAPI 路径，建议不以 `/` 开头；`options` 为可选 `HttpRequestOptions`：
+透传 ISAPI 请求至已登录设备，`uri` 不以 `/` 开头（SDK 内部已补入分隔符）。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -710,32 +656,17 @@ export function CameraPanel() {
 | `async` | `boolean` | 否 | `true` | 是否异步 |
 | `auth` | `boolean \| string` | 否 | `true` | 是否携带设备认证或直接透传认证值 |
 
-返回：`Promise<Document \| null>`。
+#### `player.getTextOverlay(deviceId: string, uri: string): Promise<Document | null>`
 
-#### `player.getTextOverlay(deviceId, uri)`
+读取通道 OSD 字符叠加配置，`uri` 为叠加信息 ISAPI 路径。
 
-读取通道 OSD 字符叠加配置。
+#### `player.openFileDialog(type: FileDialogType): Promise<OpenFileDialogResult>`
 
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `deviceId` | `string` | 是 | 无 | `login()` 返回的设备 id |
-| `uri` | `string` | 是 | 无 | 叠加信息 ISAPI 路径 |
-
-返回：`Promise<Document \| null>`。
-
-#### `player.openFileDialog(type)`
-
-打开文件或文件夹选择框。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `type` | [`FileDialogType`](#filedialogtype) | 是 | 无 | 文件或文件夹选择模式 |
-
-返回：`Promise<OpenFileDialogResult>`。
+打开文件或文件夹选择框，`type` 参见 [`FileDialogType`](#filedialogtype)。
 
 ### 低级桥接 API
 
-低级桥接 API 直接调用底层方法，适合临时接入本库尚未封装的能力。
+低级桥接 API 直接透传至底层 SDK，用于访问本库尚未封装的 `I_*` 方法。建议优先使用高级 API，仅在必要时使用低级桥接。
 
 | 方法 | 参数 | 返回值 | 说明 |
 | --- | --- | --- | --- |
@@ -751,9 +682,9 @@ export function CameraPanel() {
 
 ### 错误类与辅助函数
 
-所有封装 API 失败都会抛出 `HikError`。优先使用 `code` 字段做分支处理，而非依赖 `message` 文案。
+所有封装 API 的失败均以 `HikError` 抛出。建议以 `code` 字段作为错误分支依据，`message` 仅用于日志记录，不应作为程序判断条件。
 
-#### `new HikError(code, message, details?, cause?)`
+#### `new HikError(code: HikErrorCode, message: string, details?: HikErrorDetails, cause?: unknown)`
 
 库统一错误类型。其它任意异常可通过 `toHikError()` 收敛为它。
 
@@ -766,7 +697,7 @@ export function CameraPanel() {
 
 实例字段：`name`、`code`、`message`、`details`、`cause`。
 
-#### `toHikError(error, fallbackCode?, fallbackMessage?)`
+#### `toHikError(error: unknown, fallbackCode?: HikErrorCode, fallbackMessage?: string): HikError`
 
 把任意异常收敛为 `HikError`，适合在业务统一错误处理中使用。
 
@@ -775,8 +706,6 @@ export function CameraPanel() {
 | `error` | `unknown` | 是 | 无 | 原始异常 |
 | `fallbackCode` | `HikErrorCode` | 否 | `'SDK_CALL_FAILED'` | 原始异常不是 `HikError` 时使用 |
 | `fallbackMessage` | `string` | 否 | `'调用 SDK 失败'` | 原始异常没有 message 时使用 |
-
-返回：`HikError`。
 
 ### 工具函数
 
@@ -803,10 +732,10 @@ export function CameraPanel() {
 
 ### 常量与取值
 
-每个 TypeScript 字面量类型（如 `StreamType`）都对应一个同语义的运行时常量对象（如 `STREAM_TYPE`）。两者取值完全一致：
+每个 TypeScript 字面量类型（如 `StreamType`）均对应同名运行时常量对象（如 `STREAM_TYPE`），两者取值完全一致：
 
-- **类型**用于 TS 函数签名约束与编辑器自动补全；
-- **常量**用于在业务代码中以语义化成员名访问，例如 `STREAM_TYPE.Main` 等价于字面量 `1`。
+- **类型（Type）**：用于函数签名约束与编辑器自动补全；
+- **常量（Constant）**：用于业务代码中以语义化成员名访问，例如 `STREAM_TYPE.Main` 等价于字面量 `1`。
 
 #### Protocol
 
@@ -1006,31 +935,22 @@ export function CameraPanel() {
 
 ## 事件
 
-使用 `on` 订阅事件，返回值是取消订阅函数。
+通过 [`on / once / off`](#事件订阅) 订阅，事件名采用 `<domain>:<action>` 命名约定。
 
 ```ts
-const off = player.on('preview:started', (payload) => {
-  console.log(payload.deviceId, payload.channel, payload.windowIndex)
+const off = player.on('preview:started', ({ deviceId, channel, windowIndex }) => {
+  console.log(deviceId, channel, windowIndex)
 })
 
-off()
+off() // 取消订阅
 ```
-
-也可以使用 `once` 和 `off`。
-
-```ts
-player.once('plugin:initialized', () => console.log('ready'))
-player.off('preview:started')
-```
-
-事件列表：
 
 | 事件名 | 负载 | 说明 |
 | --- | --- | --- |
 | `plugin:initialized` | `void` | 初始化完成 |
 | `plugin:destroyed` | `void` | 销毁完成 |
-| `plugin:event` | `{ eventType:` [`PluginEventCode`](#plugineventcode)`, windowIndex, param2 }` | 播放异常或状态事件 |
-| `plugin:error` | `{ windowIndex, errorCode:` [`SdkRuntimeError`](#sdkruntimeerror)`, error }` | 插件错误 |
+| `plugin:event` | `{ eventType:` [`PluginEventCode`](#plugineventcode) `\| number, windowIndex, param2 }` | 播放异常 / 回放结束 / 对讲失败 / 空间不足 |
+| `plugin:error` | `{ windowIndex, errorCode: number, error }` | 插件运行时错误，常见 `errorCode` 见 [`SDK_RUNTIME_ERROR`](#sdkruntimeerror) |
 | `plugin:performance-lack` | `void` | 设备或环境性能不足 |
 | `plugin:secret-key-error` | `{ windowIndex }` | 码流加密密钥错误 |
 | `window:selected` | `{ windowIndex }` | 用户选中窗口 |
@@ -1046,26 +966,17 @@ player.off('preview:started')
 | `recording:stopped` | `{ windowIndex }` | 本地录像停止 |
 | `capture:completed` | `{ fileName, windowIndex, asFile }` | 抓拍完成 |
 
-常见事件值：
-
-```ts
-PLUGIN_EVENT.PlayAbnormal // 0, 取流异常或被动断开
-PLUGIN_EVENT.PlaybackEnd // 2, 回放结束
-PLUGIN_EVENT.AudioTalkFail // 3, 对讲失败
-PLUGIN_EVENT.NoFreeSpace // 21, 存储空间不足
-```
-
-运行时错误码可通过 `SDK_RUNTIME_ERROR` 转中文。
+运行时错误码可通过 `SDK_RUNTIME_ERROR` 转中文描述：
 
 ```ts
 player.on('plugin:error', ({ errorCode }) => {
-  console.error(SDK_RUNTIME_ERROR[errorCode] ?? errorCode)
+  console.error(SDK_RUNTIME_ERROR[errorCode as keyof typeof SDK_RUNTIME_ERROR] ?? errorCode)
 })
 ```
 
 ## 错误处理
 
-所有封装 API 的失败都会抛出 `HikError`。
+所有封装 API 的失败均以 `HikError` 抛出，`code` 字段为稳定的程序判断依据。
 
 ```ts
 import { HikError } from 'hikvideoctrl'
@@ -1246,7 +1157,7 @@ if (record) {
 
 ## 测试
 
-业务单元测试可以注入一个最小 SDK 替身。
+通过构造函数注入最小 SDK 替身，可在无浏览器环境下对业务逻辑进行单元测试。
 
 ```ts
 import type { WebVideoCtrlSDK } from 'hikvideoctrl'

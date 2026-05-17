@@ -1,10 +1,6 @@
 /**
- * 极简类型化事件总线。
- *
- * 优先选择内置实现而非引入第三方依赖：
- * - 仅支持本库实际需要的"具名事件 → 单一负载"语义。
- * - 监听器抛出的异常仅记录在 console，不阻塞其它监听器。
- * - emit 时遍历副本，允许监听器内部 `off()` 自己而不影响本轮派发。
+ * 极简类型化事件总线，仅支持"具名事件 → 单一负载"语义。
+ * 监听器异常仅记录到 console，不阻塞其它监听器。
  */
 
 export type EventHandler<P> = (payload: P) => void
@@ -43,12 +39,12 @@ export class TypedEmitter<EventMap extends Record<string, any>> {
       this.listeners.delete(event)
   }
 
-  /** 触发事件。 */
+  /** 派发事件到所有监听器。 */
   emit<K extends keyof EventMap>(event: K, payload: EventMap[K]): void {
     const bag = this.listeners.get(event)
     if (!bag?.size)
       return
-    // 拷贝迭代，使监听器可在回调中安全地 off 自己 / 注册新监听
+    // 拷贝迭代，允许监听器在回调中安全地 off 自己或新增订阅
     for (const handler of [...bag]) {
       try {
         handler(payload)

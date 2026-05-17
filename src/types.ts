@@ -14,49 +14,44 @@ import type { WebVideoCtrlSDK } from './sdk'
 
 // ─────────────────────────── 客户端构造 ───────────────────────────
 
-/** `createHikPlayer()` / `new HikPlayer()` 的构造参数。 */
 export interface HikPlayerOptions {
-  /**
-   * 注入自定义 SDK 实例。
-   * 缺省读取 `window.WebVideoCtrl`，便于在 Worker / SSR / 单元测试场景中替换。
-   */
+  /** 注入自定义 SDK 实例；缺省读取 `window.WebVideoCtrl`。便于测试替换。 */
   sdk?: WebVideoCtrlSDK
 }
 
 // ─────────────────────────── 初始化 ───────────────────────────
 
 /**
- * `init()` 的参数。仅暴露无插件模式下"可配置且有意义"的字段；
- * SDK 中固定/不支持的项（如 `bNoPlugin`、`iPlayMode`、`szOcxClassId`）由封装层固化。
+ * `init()` 参数。仅暴露无插件模式下可配置的字段；
+ * SDK 中固定项（`bNoPlugin`、`iPlayMode` 等）由封装层固化。
  */
 export interface PluginInitOptions {
   /** 渲染容器：DOM 元素、id 字符串或 `#id` 选择器。 */
   container: string | HTMLElement
-  /** 宽度（像素或 CSS 字符串）；缺省取容器实际宽度，再退到 800。 */
+  /** 宽度；缺省取容器实际宽度，再退到 800。 */
   width?: number | string
-  /** 高度（像素或 CSS 字符串）；缺省取容器实际高度，再退到 600。 */
+  /** 高度；缺省取容器实际高度，再退到 600。 */
   height?: number | string
   /** 初始分屏布局，默认 1（单画面）。 */
   layout?: Layout | number
   /**
-   * 插件背景串。格式：
-   *
+   * 插件背景串，格式：
    * ```
    * plugin-background:#fff; sub-background:#fff; sub-border:#fff; sub-border-select:#fff
    * ```
    */
   colorProperty?: string
-  /** 打开 SDK 自身的调试日志，等效官方的 `bDebugMode`。 */
+  /** 打开 SDK 调试日志（对应 `bDebugMode`）。 */
   debugMode?: boolean
-  /** 窗口选中（推荐改用 `on('window:selected')`）。 */
+  /** 窗口选中回调（推荐改用 `on('window:selected')`）。 */
   onWindowSelect?: (windowIndex: number) => void
-  /** 窗口双击 / 全屏切换（推荐改用 `on('window:dblclick')`）。 */
+  /** 窗口双击 / 全屏回调（推荐改用 `on('window:dblclick')`）。 */
   onWindowDoubleClick?: (windowIndex: number, fullScreen: boolean) => void
-  /** 异常事件回调（推荐改用 `on('plugin:event')`）。 */
+  /** 异常事件（推荐改用 `on('plugin:event')`）。 */
   onEvent?: (eventType: PluginEventCode | number, windowIndex: number, param2: number) => void
-  /** 插件级错误回调（推荐改用 `on('plugin:error')`）。 */
+  /** 插件级错误（推荐改用 `on('plugin:error')`）。 */
   onError?: (windowIndex: number, errorCode: number, error: unknown) => void
-  /** 性能不足回调（推荐改用 `on('plugin:performance-lack')`）。 */
+  /** 性能不足（推荐改用 `on('plugin:performance-lack')`）。 */
   onPerformanceLack?: () => void
   /** 码流加密密钥错误（推荐改用 `on('plugin:secret-key-error')`）。 */
   onSecretKeyError?: (windowIndex: number) => void
@@ -64,11 +59,11 @@ export interface PluginInitOptions {
 
 // ─────────────────────────── 设备 / 通道 ───────────────────────────
 
-/** 登录设备所需信息。 */
+/** 设备登录凭据。 */
 export interface DeviceCredentials {
   /** 设备 IP 或域名。 */
   host: string
-  /** 端口；默认 `http=80`、`https=443`。 */
+  /** 端口；默认 `http=80` / `https=443`。 */
   port?: number
   /** 协议，默认 `http`。 */
   protocol?: ProtocolScheme
@@ -78,15 +73,14 @@ export interface DeviceCredentials {
   login?: DeviceLoginOptions
 }
 
-/** 登录扩展项。 */
 export interface DeviceLoginOptions {
-  /** 异步 / 同步交互，默认 `true`。 */
+  /** 异步交互，默认 `true`。 */
   async?: boolean
-  /** CGI 协议选择；`1` 强制 ISAPI，缺省由 SDK 自动协商。 */
+  /** CGI 协议；`1` 强制 ISAPI，缺省由 SDK 自动协商。 */
   cgi?: number
 }
 
-/** 一次成功登录返回的会话信息。 */
+/** 登录成功返回的会话信息。 */
 export interface DeviceSession {
   /** 设备唯一标识 `<host>_<port>`。 */
   id: string
@@ -96,7 +90,7 @@ export interface DeviceSession {
   protocol: ProtocolScheme
 }
 
-/** 设备端口信息（`I_GetDevicePort` 返回）。 */
+/** `I_GetDevicePort` 返回的端口信息。 */
 export interface DevicePort {
   /** 设备 HTTP/HTTPS 端口 */
   iDevicePort: number
@@ -110,7 +104,7 @@ export interface DevicePort {
   iWebSocketsPort?: number
 }
 
-/** 设备基本信息（解析自 `I_GetDeviceInfo` XML）。 */
+/** 解析自 `I_GetDeviceInfo` XML 的设备基本信息。 */
 export interface DeviceInfo {
   deviceName: string
   deviceId: string
@@ -126,17 +120,16 @@ export interface DeviceInfo {
   raw: Document
 }
 
-/** 通道类型。 */
 export type ChannelKind = 'analog' | 'digital' | 'zero'
 
-/** 通道信息（聚合自模拟 / 数字 / 零通道）。 */
+/** 聚合自模拟 / 数字 / 零通道的通道信息。 */
 export interface ChannelInfo {
   id: string
   name: string
   kind: ChannelKind
-  /** 是否在线（模拟通道恒为 true，数字通道按 `<online>` 字段判定）。 */
+  /** 模拟通道恒为 true，数字通道按 `<online>` 字段判定。 */
   online: boolean
-  /** 是否启用（仅零通道有意义，模拟/数字均为 true）。 */
+  /** 仅零通道有意义，模拟/数字均为 true。 */
   enabled: boolean
   /** 模拟通道独有的视频制式 PAL / NTSC。 */
   videoFormat?: string
@@ -152,33 +145,29 @@ export type RecordKind
     | 'smart'
     | (string & {})
 
-/** 录像搜索的一条命中记录。 */
 export interface RecordMatch {
   trackId: string
   /** 起始时间，已规整为 `yyyy-MM-dd HH:mm:ss` */
   startTime: string
   endTime: string
-  /** 录像名（从 `playbackURI` 的 `name=` 抽取，便于直接作为下载文件名片段）。 */
+  /** 从 `playbackURI` 的 `name=` 抽取，可直接作为下载文件名片段。 */
   fileName: string
-  /** 原始 `playbackURI`，下载录像时必须原样回传。 */
+  /** 原始 `playbackURI`，下载录像时须原样回传。 */
   playbackUri: string
-  /** 录像类型（动测 / 报警 / 定时…）。 */
   kind: RecordKind
 }
 
-/** `searchRecords()` 返回的封装结果。 */
 export interface RecordSearchResult {
   matches: RecordMatch[]
   /**
    * 后端响应状态：
    * - `OK`         本次为最后一页
-   * - `MORE`       仍有后续数据，需继续翻页
+   * - `MORE`       仍有后续数据
    * - `NO MATCHES` 时间范围内无录像
    */
   status: 'OK' | 'MORE' | 'NO MATCHES' | (string & {})
-  /** 本次实际返回条数。 */
   count: number
-  /** 原始 XML，便于业务方扩展解析。 */
+  /** 原始 XML，便于业务扩展解析。 */
   raw: Document
 }
 
@@ -191,13 +180,13 @@ export interface PreviewOptions {
   windowIndex?: number
   /** 码流类型，默认主码流。 */
   streamType?: StreamType
-  /** 播放零通道（即整机预览），默认 false。 */
+  /** 零通道（整机预览），默认 false。 */
   zeroChannel?: boolean
-  /** RTSP 端口；兼容官方文档字段，不传由 SDK 自动判断。 */
+  /** RTSP 端口；不传由 SDK 自动判断。 */
   rtspPort?: number
   /** WebSocket 取流端口；V3.4.0 无插件实际读取 `iWSPort`。 */
   webSocketPort?: number
-  /** 是否走 WebSocket 代理；HTTPS 下及部分设备需置 true。 */
+  /** 走 WebSocket 代理；HTTPS 下及部分设备需置 true。 */
   useProxy?: boolean
 }
 
@@ -212,11 +201,11 @@ export interface PlaybackTranscode {
 }
 
 export interface PlaybackOptions extends Omit<PreviewOptions, 'zeroChannel'> {
-  /** 起始时间，格式 `yyyy-MM-dd HH:mm:ss`。 */
+  /** `yyyy-MM-dd HH:mm:ss` 格式。 */
   startTime: string
-  /** 结束时间，格式 `yyyy-MM-dd HH:mm:ss`。 */
+  /** `yyyy-MM-dd HH:mm:ss` 格式。 */
   endTime: string
-  /** 转码参数；需设备支持，不支持时不要传入。 */
+  /** 转码参数；设备不支持时勿传。 */
   transcode?: PlaybackTranscode
 }
 
@@ -225,7 +214,7 @@ export interface PlaybackOptions extends Omit<PreviewOptions, 'zeroChannel'> {
 export interface PtzControlOptions {
   /** 控制类型，见 `PTZ_COMMAND`。 */
   action: PtzCommand | number
-  /** 控制速度 1-7，默认 4。 */
+  /** 速度 1-7，默认 4。 */
   speed?: number
   windowIndex?: number
 }
@@ -234,44 +223,35 @@ export interface PtzControlOptions {
 
 export interface RecordSearchOptions {
   channel: number
-  /** 起始时间，格式 `yyyy-MM-dd HH:mm:ss`。 */
+  /** `yyyy-MM-dd HH:mm:ss` 格式。 */
   startTime: string
-  /** 结束时间，格式 `yyyy-MM-dd HH:mm:ss`。 */
+  /** `yyyy-MM-dd HH:mm:ss` 格式。 */
   endTime: string
   streamType?: StreamType
-  /**
-   * 搜索起点；优先级高于 `page`。
-   * 取值必须为 40 的倍数（0/40/80…），对应每页 40 条。
-   */
+  /** 搜索起点（必须为 40 的倍数）；优先级高于 `page`。 */
   searchPos?: number
-  /** 1 基页码；自动换算为 `(page-1) * 40`。默认 1。 */
+  /** 1 基页码，自动换算为 `(page-1) * 40`，默认 1。 */
   page?: number
 }
 
 export interface RecordingOptions {
-  /** 录像文件名（无扩展名）；缺省自动生成。 */
+  /** 文件名（无扩展名），缺省自动生成。 */
   fileName?: string
   windowIndex?: number
-  /** 是否按日期建立子目录，默认 true。 */
+  /** 按日期建立子目录，默认 true。 */
   byDateDirectory?: boolean
 }
 
 export interface CaptureOptions {
-  /**
-   * 抓拍文件名；SDK 按扩展名决定格式：`.bmp` 为 BMP，其它默认 JPEG。
-   * 缺省自动生成 `capture_<ts>.jpg`。
-   */
+  /** 文件名；按扩展名决定格式（`.bmp` 为 BMP，其它默认 JPEG）。 */
   fileName?: string
   windowIndex?: number
-  /**
-   * 设置回调后将不再下载文件，而是回调原始 Uint8Array。
-   * 即官方文档的 `cbCallback`。
-   */
+  /** 设置后不再下载文件，而是回传原始 Uint8Array（对应官方 `cbCallback`）。 */
   onData?: (data: Uint8Array) => void | Promise<void>
 }
 
 export interface DownloadOptions {
-  /** 是否按日期建立子目录，默认 true。 */
+  /** 按日期建立子目录，默认 true。 */
   byDateDirectory?: boolean
 }
 
@@ -290,12 +270,12 @@ export interface RestoreDefaultOptions {
 export interface ImportDeviceConfigOptions {
   /** 导入密码；未加密配置可不传。 */
   password?: string
-  /** `openFileDialog(FILE_DIALOG.File)` 返回的浏览器 File 句柄。 */
+  /** `openFileDialog(FILE_DIALOG.File)` 返回的 File 句柄。 */
   file?: File | null
 }
 
 export interface StartUpgradeOptions {
-  /** `openFileDialog(FILE_DIALOG.File)` 返回的浏览器 File 句柄。 */
+  /** `openFileDialog(FILE_DIALOG.File)` 返回的 File 句柄。 */
   file?: File | null
 }
 
@@ -304,23 +284,18 @@ export interface StartUpgradeOptions {
 export interface HttpRequestOptions {
   /** 默认 `GET`。 */
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  /** 请求体（XML 字符串），通常用于 PUT/POST。 */
+  /** 请求体（XML 字符串），用于 PUT/POST。 */
   body?: string
-  /** 默认 true 异步。 */
+  /** 默认 `true`。 */
   async?: boolean
-  /**
-   * 认证。
-   *
-   * - `true`（默认）：携带已登录设备认证
-   * - 字符串：直接作为 `auth` 字段透传
-   */
+  /** `true` 携带已登录设备认证；字符串则直接作为 `auth` 字段透传。 */
   auth?: boolean | string
 }
 
 // ─────────────────────────── 文件对话 ───────────────────────────
 
 export interface OpenFileDialogResult {
-  /** 用户选择的文件名（`-1` 表示取消）；保留 SDK 原始语义。 */
+  /** 用户选择的文件名；`-1` 表示取消（保留 SDK 原始语义）。 */
   szFileName: string
   /** 实际文件句柄；选择文件夹时可能为 null。 */
   file: File | null
@@ -340,11 +315,7 @@ export interface WindowStatus {
 
 // ─────────────────────────── 事件映射 ───────────────────────────
 
-/**
- * `on / off / once` 使用的事件名 → 负载映射。
- *
- * 命名规约：`<domain>:<action>`，便于排序与日志聚合。
- */
+/** `on / off / once` 的事件名 → 负载映射；命名规约 `<domain>:<action>`。 */
 export interface HikPlayerEventMap {
   'plugin:initialized': void
   'plugin:destroyed': void

@@ -1,8 +1,4 @@
-/**
- * hikvideoctrl —— 海康威视无插件视频 SDK 的现代化 TypeScript 封装。
- *
- * @packageDocumentation
- */
+/** 海康威视无插件视频 SDK 的现代化 TypeScript 封装。 */
 
 export {
   DEFAULT_PORT,
