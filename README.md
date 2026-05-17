@@ -1,6 +1,11 @@
 # hikvideoctrl
 
-海康威视无插件 Web 视频能力的 TypeScript 封装。你可以用它在 Vue、React、Svelte 或普通前端项目中完成设备登录、实时预览、录像回放、抓拍、录像搜索、云台控制、设备维护等常见监控业务。
+[![npm version](https://img.shields.io/npm/v/hikvideoctrl.svg)](https://www.npmjs.com/package/hikvideoctrl)
+[![license](https://img.shields.io/npm/l/hikvideoctrl.svg)](./LICENSE)
+
+海康威视无插件 Web 视频能力的 TypeScript 封装。基于官方 `WebSDK_noPlugin V3.4.0`，将同步、Promise、回调三种调用形态统一为 `async/await`，并提供强类型常量、事件与错误。
+
+适用于 Vue、React、Svelte 或原生前端项目中的设备登录、实时预览、录像回放、抓拍、录像搜索、云台控制、设备维护等监控业务。
 
 ## 目录
 
@@ -22,7 +27,7 @@
   - [实时预览](#实时预览)
   - [回放控制](#回放控制)
   - [窗口与布局](#窗口与布局)
-  - [声音缩放与加密](#声音缩放与加密)
+  - [音量、缩放与加密](#音量缩放与加密)
   - [抓拍录像与下载](#抓拍录像与下载)
   - [PTZ 云台](#ptz-云台)
   - [设备维护](#设备维护)
@@ -38,15 +43,16 @@
 - [排障指南](#排障指南)
 - [测试](#测试)
 - [开发命令](#开发命令)
+- [致谢](#致谢)
 - [License](#license)
 
 ## 特性
 
-- Promise 优先：登录、预览、回放、抓拍、PTZ、录像、升级等操作可直接 `await`。
-- TypeScript 友好：导出常量、参数类型、事件负载类型和统一错误类型。
-- SPA 友好：`destroy()` 会停止播放、释放底层 Worker，并清理事件监听。
-- 无运行时依赖：安装本包后，自行托管底层静态资源即可。
-- 可渐进接入：常用能力有高级 API，特殊 ISAPI 请求可用 `sendHttpRequest()` 透传。
+- **Promise 优先**：登录、预览、回放、抓拍、PTZ、录像、升级等操作可直接 `await`，失败统一抛出 `HikError`。
+- **TypeScript 友好**：导出所有常量字面量类型、参数类型、事件负载类型与错误码联合类型。
+- **SPA 友好**：`destroy()` 自动停止播放、释放底层 Worker、清空事件监听，避免组件卸载后的资源泄漏。
+- **零运行时依赖**：仅依赖海康原生 `webVideoCtrl.js` 及其同目录静态资源，无任何 npm 依赖。
+- **可渐进接入**：常用能力封装为高级 API；特殊 ISAPI 请求与未封装方法可通过 `sendHttpRequest()` 与低级桥接 API 直接调用。
 
 ## 安装
 
@@ -83,15 +89,15 @@ public/
 
 | 项目       | 要求或说明                                                           |
 | ---------- | -------------------------------------------------------------------- |
-| 浏览器     | Chromium 91+，例如 Chrome、Edge、Brave 或国产 Chromium 内核浏览器    |
-| 设备       | 设备需要支持 WebSocket 取流                                          |
+| 浏览器     | Chromium 91+（Chrome、Edge、Brave、国产 Chromium 内核浏览器均可）    |
+| 设备       | 摄像机或 NVR 固件需支持 WebSocket 取流（V3.4 兼容 ISAPI 设备）       |
 | 视频编码   | H.264、H.265、smartH264、smartH265                                   |
-| 协议       | 支持 HTTP / HTTPS；HTTPS 或跨网段访问通常需要 WebSocket 代理         |
-| 反向代理   | 官方 SDK 包含 Nginx 示例；直连失败、HTTPS 或跨网段场景需配置等效代理 |
-| 页面环境   | `localhost`、内网 HTTP 或可信 HTTPS 域名                             |
-| 不支持环境 | IE、有插件模式、纯 Node.js / SSR 渲染阶段                            |
+| 接入协议   | HTTP / HTTPS；HTTPS 或跨网段访问通常需要 WebSocket 代理              |
+| 反向代理   | 官方 SDK 自带 Nginx 示例；直连失败、HTTPS 或跨网段场景需配置等效代理 |
+| 页面环境   | `localhost`、内网 HTTP，或可信 HTTPS 域名                            |
+| 不支持环境 | IE、有插件 OCX 模式、Node.js / SSR 渲染阶段                          |
 
-官方包提供 `nginx-1.28.0/conf/nginx.conf` 示例，包含 `/ISAPI`、`/SDK` 和 `/webSocketVideoCtrlProxy` 转发。设备 HTTP/HTTPS 与 WebSocket 可直连时无需代理；生产环境可用 Nginx、网关或后端服务实现等效转发。
+官方包提供 `nginx-1.28.0/conf/nginx.conf` 示例，包含 `/ISAPI`、`/SDK` 与 `/webSocketVideoCtrlProxy` 转发规则。当设备 HTTP/HTTPS 与 WebSocket 可直连时无需代理；生产环境可使用 Nginx、API 网关或后端服务实现等效转发。
 
 ## 快速开始
 
@@ -209,13 +215,14 @@ await player.startPlayback(device.id, {
 
 ### 代理与端口
 
-内网 HTTP 直连通常不需要额外参数。HTTPS、跨网段或 WebSocket 直连失败时：
+内网 HTTP 直连场景通常不需要任何额外参数，SDK 会自动协商端口。遇到 HTTPS、跨网段或 WebSocket 直连失败时：
 
-- 在你的 Web 服务侧配置 WebSocket 代理。
-- 播放时传 `useProxy: true`。
-- 如端口自动识别失败，优先传 `webSocketPort`。
+1. 在 Web 服务侧配置 WebSocket 代理（参考官方 Nginx 示例）。
+2. 播放时传 `useProxy: true`。
+3. 自动协商端口失败时显式传 `webSocketPort`（对应 SDK 内部 `iWSPort`）。
+4. 部分 RTSP 链路环境下额外传 `rtspPort`（对应 SDK 内部 `iRtspPort`）。
 
-官方 Nginx 示例使用 `/ISAPI`、`/SDK` 转发设备 HTTP 接口，使用 `/webSocketVideoCtrlProxy` 转发 WebSocket 取流。底层 SDK 通过 `webVideoCtrlProxy`、`webVideoCtrlProxyWs`、`webVideoCtrlProxyWss` 等 cookie 传递真实设备地址；自建网关需兼容这些入口。
+官方 Nginx 示例通过 `/ISAPI`、`/SDK` 转发设备 HTTP 接口，通过 `/webSocketVideoCtrlProxy` 转发 WebSocket 取流。底层 SDK 通过 `webVideoCtrlProxy`、`webVideoCtrlProxyWs`、`webVideoCtrlProxyWss` 等 Cookie 传递真实设备地址；自建网关需兼容这些入口。
 
 ```ts
 await player.startPreview(device.id, {
@@ -224,8 +231,6 @@ await player.startPreview(device.id, {
   webSocketPort: 7681,
 })
 ```
-
-`rtspPort` 仅为兼容字段；无插件播放主要使用 WebSocket 取流端口。
 
 ## Vue 3 示例
 
@@ -290,9 +295,11 @@ export function CameraPanel() {
 
 ### 加载与创建
 
+> 调用顺序：`loadWebVideoCtrl()` → `createHikPlayer()` → `player.init()` → 其他 API。
+
 #### `loadWebVideoCtrl(scriptUrl, options?)`
 
-加载底层脚本，并等待 `window.WebVideoCtrl` 就绪。
+加载底层 `webVideoCtrl.js`，并等待 `window.WebVideoCtrl` 就绪。脚本同源、`src` 完全相同时默认复用已存在的 `<script>` 节点。
 
 | 参数               | 类型                      | 必填 | 默认值    | 说明                         |
 | ------------------ | ------------------------- | ---- | --------- | ---------------------------- |
@@ -549,7 +556,7 @@ export function CameraPanel() {
 | `player.getWindowStatus(windowIndex?)` | `windowIndex?: number` | `WindowStatus \| null` | 获取单个窗口状态                           |
 | `player.getAllWindows()`               | 无                     | `WindowStatus[]`       | 获取底层返回的窗口状态列表                 |
 
-### 声音缩放与加密
+### 音量、缩放与加密
 
 | 方法                                             | 参数                                                           | 返回值          | 说明                            |
 | ------------------------------------------------ | -------------------------------------------------------------- | --------------- | ------------------------------- |
@@ -764,9 +771,11 @@ export function CameraPanel() {
 
 ### 错误类与辅助函数
 
+所有封装 API 失败都会抛出 `HikError`。优先使用 `code` 字段做分支处理，而非依赖 `message` 文案。
+
 #### `new HikError(code, message, details?, cause?)`
 
-封装库统一错误类型，所有高级 API 失败都会抛出它或可被 `toHikError()` 转成它。
+库统一错误类型。其它任意异常可通过 `toHikError()` 收敛为它。
 
 | 参数      | 类型              | 必填 | 默认值 | 说明                       |
 | --------- | ----------------- | ---- | ------ | -------------------------- |
@@ -1181,12 +1190,18 @@ const player = createHikPlayer({ sdk: fakeSdk as WebVideoCtrlSDK })
 ## 开发命令
 
 ```bash
-pnpm install
-pnpm lint
-pnpm typecheck
-pnpm build
+pnpm install      # 安装依赖
+pnpm lint         # ESLint 检查
+pnpm lint:fix     # 自动修复 lint 问题
+pnpm typecheck    # 仅运行类型检查
+pnpm build        # 类型 + Vite 构建产物
+pnpm release      # bumpp + pnpm publish 发版
 ```
+
+## 致谢
+
+感谢海康威视提供 [无插件 Web 开发包](https://open.hikvision.com/download/5cda567cf47ae80dd41a54b3?type=20&id=6343bb4b03df46c39032d2ef825eb70d)。本项目仅作为其上层 TypeScript 封装，与海康官方无附属关系。
 
 ## License
 
-MIT © [joygqz](https://github.com/joygqz)
+[MIT](./LICENSE) © [joygqz](https://github.com/joygqz)
