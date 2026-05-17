@@ -362,7 +362,7 @@ export function CameraPanel() {
 | `options.container`           | `string \| HTMLElement`                                            | 是   | 无           | 容器 id、`#id` 或 DOM 元素                 |
 | `options.width`               | `number \| string`                                                 | 否   | 容器宽度/800 | 宽度，支持数字、`px`、`%`                  |
 | `options.height`              | `number \| string`                                                 | 否   | 容器高度/600 | 高度，支持数字、`px`、`%`                  |
-| `options.layout`              | `Layout \| number`                                                 | 否   | `1`          | 初始分屏，`1/2/3/4` 对应 `1x1/2x2/3x3/4x4` |
+| `options.layout`              | [`Layout`](#layout) \| `number`                                    | 否   | `1`          | 初始分屏，`1/2/3/4` 对应 `1×1/2×2/3×3/4×4` |
 | `options.colorProperty`       | `string`                                                           | 否   | 底层默认     | 窗口背景和边框颜色配置串                   |
 | `options.debugMode`           | `boolean`                                                          | 否   | `false`      | 是否输出底层调试日志                       |
 | `options.onWindowSelect`      | `(windowIndex: number) => void`                                    | 否   | 无           | 窗口选中回调                               |
@@ -478,17 +478,17 @@ export function CameraPanel() {
 
 开始实时预览。
 
-| 参数                    | 类型             | 必填 | 默认值   | 说明                                   |
-| ----------------------- | ---------------- | ---- | -------- | -------------------------------------- |
-| `deviceId`              | `string`         | 是   | 无       | `login()` 返回的设备 id                |
-| `options`               | `PreviewOptions` | 是   | 无       | 预览选项                               |
-| `options.channel`       | `number`         | 是   | 无       | 通道号                                 |
-| `options.windowIndex`   | `number`         | 否   | 当前窗口 | 播放窗口，从 `0` 开始                  |
-| `options.streamType`    | `StreamType`     | 否   | `1`      | `1` 主码流、`2` 子码流、`3` 第三码流   |
-| `options.zeroChannel`   | `boolean`        | 否   | `false`  | 是否播放零通道                         |
-| `options.rtspPort`      | `number`         | 否   | 自动识别 | RTSP 端口，通常不需要传                |
-| `options.webSocketPort` | `number`         | 否   | 自动识别 | WebSocket 取流端口，端口识别失败时再传 |
-| `options.useProxy`      | `boolean`        | 否   | 底层默认 | 是否通过 WebSocket 代理取流            |
+| 参数                    | 类型                        | 必填 | 默认值   | 说明                                   |
+| ----------------------- | --------------------------- | ---- | -------- | -------------------------------------- |
+| `deviceId`              | `string`                    | 是   | 无       | `login()` 返回的设备 id                |
+| `options`               | `PreviewOptions`            | 是   | 无       | 预览选项                               |
+| `options.channel`       | `number`                    | 是   | 无       | 通道号                                 |
+| `options.windowIndex`   | `number`                    | 否   | 当前窗口 | 播放窗口，从 `0` 开始                  |
+| `options.streamType`    | [`StreamType`](#streamtype) | 否   | `1`      | 码流类型                               |
+| `options.zeroChannel`   | `boolean`                   | 否   | `false`  | 是否播放零通道                         |
+| `options.rtspPort`      | `number`                    | 否   | 自动识别 | RTSP 端口，通常不需要传                |
+| `options.webSocketPort` | `number`                    | 否   | 自动识别 | WebSocket 取流端口，端口识别失败时再传 |
+| `options.useProxy`      | `boolean`                   | 否   | 底层默认 | 是否通过 WebSocket 代理取流            |
 
 返回：`Promise<void>`。
 
@@ -516,22 +516,22 @@ export function CameraPanel() {
 
 按时间段开始回放。
 
-| 参数                           | 类型                | 必填 | 默认值   | 说明                                 |
-| ------------------------------ | ------------------- | ---- | -------- | ------------------------------------ |
-| `deviceId`                     | `string`            | 是   | 无       | `login()` 返回的设备 id              |
-| `options`                      | `PlaybackOptions`   | 是   | 无       | 回放选项                             |
-| `options.channel`              | `number`            | 是   | 无       | 通道号                               |
-| `options.startTime`            | `string`            | 是   | 无       | 起始时间，格式 `yyyy-MM-dd HH:mm:ss` |
-| `options.endTime`              | `string`            | 是   | 无       | 结束时间，格式 `yyyy-MM-dd HH:mm:ss` |
-| `options.windowIndex`          | `number`            | 否   | 当前窗口 | 播放窗口                             |
-| `options.streamType`           | `StreamType`        | 否   | `1`      | 码流类型                             |
-| `options.rtspPort`             | `number`            | 否   | 自动识别 | RTSP 端口                            |
-| `options.webSocketPort`        | `number`            | 否   | 自动识别 | WebSocket 取流端口                   |
-| `options.useProxy`             | `boolean`           | 否   | 底层默认 | 是否通过 WebSocket 代理取流          |
-| `options.transcode`            | `PlaybackTranscode` | 否   | 无       | 转码参数                             |
-| `options.transcode.frameRate`  | `string`            | 否   | 无       | 转码帧率档位                         |
-| `options.transcode.resolution` | `string`            | 否   | 无       | 转码分辨率档位                       |
-| `options.transcode.bitrate`    | `string`            | 否   | 无       | 转码码率档位                         |
+| 参数                           | 类型                                          | 必填 | 默认值   | 说明                                 |
+| ------------------------------ | --------------------------------------------- | ---- | -------- | ------------------------------------ |
+| `deviceId`                     | `string`                                      | 是   | 无       | `login()` 返回的设备 id              |
+| `options`                      | `PlaybackOptions`                             | 是   | 无       | 回放选项                             |
+| `options.channel`              | `number`                                      | 是   | 无       | 通道号                               |
+| `options.startTime`            | `string`                                      | 是   | 无       | 起始时间，格式 `yyyy-MM-dd HH:mm:ss` |
+| `options.endTime`              | `string`                                      | 是   | 无       | 结束时间，格式 `yyyy-MM-dd HH:mm:ss` |
+| `options.windowIndex`          | `number`                                      | 否   | 当前窗口 | 播放窗口                             |
+| `options.streamType`           | [`StreamType`](#streamtype)                   | 否   | `1`      | 码流类型                             |
+| `options.rtspPort`             | `number`                                      | 否   | 自动识别 | RTSP 端口                            |
+| `options.webSocketPort`        | `number`                                      | 否   | 自动识别 | WebSocket 取流端口                   |
+| `options.useProxy`             | `boolean`                                     | 否   | 底层默认 | 是否通过 WebSocket 代理取流          |
+| `options.transcode`            | `PlaybackTranscode`                           | 否   | 无       | 转码参数                             |
+| `options.transcode.frameRate`  | [`TranscodeFrameRate`](#transcodeframerate)   | 否   | 无       | 转码帧率档位                         |
+| `options.transcode.resolution` | [`TranscodeResolution`](#transcoderesolution) | 否   | 无       | 转码分辨率档位                       |
+| `options.transcode.bitrate`    | [`TranscodeBitrate`](#transcodebitrate)       | 否   | 无       | 转码码率档位                         |
 
 返回：`Promise<void>`。
 
@@ -549,12 +549,12 @@ export function CameraPanel() {
 
 ### 窗口与布局
 
-| 方法                                   | 参数                   | 返回值                 | 说明                                       |
-| -------------------------------------- | ---------------------- | ---------------------- | ------------------------------------------ |
-| `player.changeLayout(layout)`          | `layout: number`       | `Promise<void>`        | 切换布局，`1/2/3/4` 对应 `1x1/2x2/3x3/4x4` |
-| `player.fullScreen(enable?)`           | `enable?: boolean`     | `Promise<void>`        | 进入全屏；默认 `true`                      |
-| `player.getWindowStatus(windowIndex?)` | `windowIndex?: number` | `WindowStatus \| null` | 获取单个窗口状态                           |
-| `player.getAllWindows()`               | 无                     | `WindowStatus[]`       | 获取底层返回的窗口状态列表                 |
+| 方法                                   | 参数                          | 返回值                 | 说明                                             |
+| -------------------------------------- | ----------------------------- | ---------------------- | ------------------------------------------------ |
+| `player.changeLayout(layout)`          | `layout:` [`Layout`](#layout) | `Promise<void>`        | 切换布局（`1/2/3/4` 对应 `1×1/2×2/3×3/4×4`）     |
+| `player.fullScreen(enable?)`           | `enable?: boolean`            | `Promise<void>`        | 全屏切换；`true` 进入，`false` 退出，默认 `true` |
+| `player.getWindowStatus(windowIndex?)` | `windowIndex?: number`        | `WindowStatus \| null` | 获取单个窗口状态                                 |
+| `player.getAllWindows()`               | 无                            | `WindowStatus[]`       | 获取底层返回的窗口状态列表                       |
 
 ### 音量、缩放与加密
 
@@ -611,16 +611,16 @@ export function CameraPanel() {
 
 搜索录像。
 
-| 参数                 | 类型                  | 必填 | 默认值         | 说明                                 |
-| -------------------- | --------------------- | ---- | -------------- | ------------------------------------ |
-| `deviceId`           | `string`              | 是   | 无             | `login()` 返回的设备 id              |
-| `options`            | `RecordSearchOptions` | 是   | 无             | 搜索条件                             |
-| `options.channel`    | `number`              | 是   | 无             | 通道号                               |
-| `options.startTime`  | `string`              | 是   | 无             | 起始时间，格式 `yyyy-MM-dd HH:mm:ss` |
-| `options.endTime`    | `string`              | 是   | 无             | 结束时间，格式 `yyyy-MM-dd HH:mm:ss` |
-| `options.streamType` | `StreamType`          | 否   | `1`            | 码流类型                             |
-| `options.searchPos`  | `number`              | 否   | 按 `page` 计算 | 搜索起点，通常为 `0/40/80...`        |
-| `options.page`       | `number`              | 否   | `1`            | 1 基页码，自动换算为搜索起点         |
+| 参数                 | 类型                        | 必填 | 默认值         | 说明                                 |
+| -------------------- | --------------------------- | ---- | -------------- | ------------------------------------ |
+| `deviceId`           | `string`                    | 是   | 无             | `login()` 返回的设备 id              |
+| `options`            | `RecordSearchOptions`       | 是   | 无             | 搜索条件                             |
+| `options.channel`    | `number`                    | 是   | 无             | 通道号                               |
+| `options.startTime`  | `string`                    | 是   | 无             | 起始时间，格式 `yyyy-MM-dd HH:mm:ss` |
+| `options.endTime`    | `string`                    | 是   | 无             | 结束时间，格式 `yyyy-MM-dd HH:mm:ss` |
+| `options.streamType` | [`StreamType`](#streamtype) | 否   | `1`            | 码流类型                             |
+| `options.searchPos`  | `number`                    | 否   | 按 `page` 计算 | 搜索起点，通常为 `0/40/80...`        |
+| `options.page`       | `number`                    | 否   | `1`            | 1 基页码，自动换算为搜索起点         |
 
 返回：`Promise<RecordSearchResult>`。
 
@@ -660,32 +660,32 @@ export function CameraPanel() {
 
 开始云台动作。
 
-| 参数                  | 类型                   | 必填 | 默认值   | 说明             |
-| --------------------- | ---------------------- | ---- | -------- | ---------------- |
-| `options`             | `PtzControlOptions`    | 是   | 无       | 云台控制参数     |
-| `options.action`      | `PtzCommand \| number` | 是   | 无       | 控制动作         |
-| `options.speed`       | `number`               | 否   | `4`      | 速度，范围 `1-7` |
-| `options.windowIndex` | `number`               | 否   | 当前窗口 | 操作窗口         |
+| 参数                  | 类型                                    | 必填 | 默认值   | 说明             |
+| --------------------- | --------------------------------------- | ---- | -------- | ---------------- |
+| `options`             | `PtzControlOptions`                     | 是   | 无       | 云台控制参数     |
+| `options.action`      | [`PtzCommand`](#ptzcommand) `\| number` | 是   | 无       | 控制动作         |
+| `options.speed`       | `number`                                | 否   | `4`      | 速度，范围 `1-7` |
+| `options.windowIndex` | `number`                                | 否   | 当前窗口 | 操作窗口         |
 
 返回：`Promise<void>`。
 
 #### PTZ 其它方法
 
-| 方法                                       | 参数                                                   | 返回值          | 说明         |
-| ------------------------------------------ | ------------------------------------------------------ | --------------- | ------------ |
-| `player.ptzStop(action, windowIndex?)`     | `action: PtzCommand \| number`, `windowIndex?: number` | `Promise<void>` | 停止云台动作 |
-| `player.setPreset(presetId, windowIndex?)` | `presetId: number`, `windowIndex?: number`             | `Promise<void>` | 保存预置位   |
-| `player.goPreset(presetId, windowIndex?)`  | `presetId: number`, `windowIndex?: number`             | `Promise<void>` | 调用预置位   |
+| 方法                                       | 参数                                                                      | 返回值          | 说明         |
+| ------------------------------------------ | ------------------------------------------------------------------------- | --------------- | ------------ |
+| `player.ptzStop(action, windowIndex?)`     | `action:` [`PtzCommand`](#ptzcommand) `\| number`, `windowIndex?: number` | `Promise<void>` | 停止云台动作 |
+| `player.setPreset(presetId, windowIndex?)` | `presetId: number`, `windowIndex?: number`                                | `Promise<void>` | 保存预置位   |
+| `player.goPreset(presetId, windowIndex?)`  | `presetId: number`, `windowIndex?: number`                                | `Promise<void>` | 调用预置位   |
 
 ### 设备维护
 
-| 方法                                            | 参数                                    | 返回值                                             | 说明         |
-| ----------------------------------------------- | --------------------------------------- | -------------------------------------------------- | ------------ |
-| `player.exportDeviceConfig(deviceId, password)` | `deviceId: string`, `password: string`  | `Promise<unknown>`                                 | 导出设备配置 |
-| `player.restoreDefault(deviceId, mode)`         | `deviceId: string`, `mode: RestoreMode` | `Promise<void>`                                    | 恢复出厂参数 |
-| `player.restart(deviceId)`                      | `deviceId: string`                      | `Promise<void>`                                    | 重启设备     |
-| `player.reconnect(deviceId)`                    | `deviceId: string`                      | `Promise<void>`                                    | 重新连接设备 |
-| `player.getUpgradeProgress(deviceId?)`          | `deviceId?: string`                     | `Promise<{ percent: number, upgrading: boolean }>` | 查询升级进度 |
+| 方法                                            | 参数                                                      | 返回值                                             | 说明         |
+| ----------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------- | ------------ |
+| `player.exportDeviceConfig(deviceId, password)` | `deviceId: string`, `password: string`                    | `Promise<unknown>`                                 | 导出设备配置 |
+| `player.restoreDefault(deviceId, mode)`         | `deviceId: string`, `mode:` [`RestoreMode`](#restoremode) | `Promise<void>`                                    | 恢复出厂参数 |
+| `player.restart(deviceId)`                      | `deviceId: string`                                        | `Promise<void>`                                    | 重启设备     |
+| `player.reconnect(deviceId)`                    | `deviceId: string`                                        | `Promise<void>`                                    | 重新连接设备 |
+| `player.getUpgradeProgress(deviceId?)`          | `deviceId?: string`                                       | `Promise<{ percent: number, upgrading: boolean }>` | 查询升级进度 |
 
 #### `player.importDeviceConfig(deviceId, fileName, options?)`
 
@@ -747,9 +747,9 @@ export function CameraPanel() {
 
 打开文件或文件夹选择框。
 
-| 参数   | 类型             | 必填 | 默认值 | 说明                                          |
-| ------ | ---------------- | ---- | ------ | --------------------------------------------- |
-| `type` | `FileDialogType` | 是   | 无     | `FILE_DIALOG.File` 或 `FILE_DIALOG.Directory` |
+| 参数   | 类型                                | 必填 | 默认值 | 说明                 |
+| ------ | ----------------------------------- | ---- | ------ | -------------------- |
+| `type` | [`FileDialogType`](#filedialogtype) | 是   | 无     | 文件或文件夹选择模式 |
 
 返回：`Promise<OpenFileDialogResult>`。
 
@@ -823,32 +823,76 @@ export function CameraPanel() {
 
 ### 常量与取值
 
-#### 基础常量
+每个 TypeScript 字面量类型（如 `StreamType`）都对应一个同语义的运行时常量对象（如 `STREAM_TYPE`）。两者取值完全一致：
 
-| 常量                      | 成员与取值                                  | 说明                       |
-| ------------------------- | ------------------------------------------- | -------------------------- |
-| `PROTOCOL`                | `HTTP=1`、`HTTPS=2`                         | 底层 SDK 使用的协议数值    |
-| `DEFAULT_PORT`            | `HTTP=80`、`HTTPS=443`、`RTSP=554`          | 默认端口                   |
-| `STREAM_TYPE`             | `Main=1`、`Sub=2`、`Third=3`                | 主码流、子码流、第三码流   |
-| `LAYOUT`                  | `Single=1`、`Quad=2`、`Nine=3`、`Sixteen=4` | `1x1`、`2x2`、`3x3`、`4x4` |
-| `FILE_DIALOG`             | `Directory=0`、`File=1`                     | 文件夹或文件选择框         |
-| `RESTORE_MODE`            | `Basic='basic'`、`Full='full'`              | 简单恢复或完全恢复         |
-| `PTZ_SPEED_RANGE`         | `{ min: 1, max: 7, default: 4 }`            | 云台速度范围               |
-| `RECORD_SEARCH_PAGE_SIZE` | `40`                                        | 录像搜索每页条数           |
+- **类型**用于 TS 函数签名约束与编辑器自动补全；
+- **常量**用于在业务代码中以语义化成员名访问，例如 `STREAM_TYPE.Main` 等价于字面量 `1`。
 
-#### `PLAY_STATUS`
+#### Protocol
+
+底层 SDK 协议数值。运行时常量：`PROTOCOL`。
+
+| 成员    | 值  | 说明  |
+| ------- | --- | ----- |
+| `HTTP`  | `1` | HTTP  |
+| `HTTPS` | `2` | HTTPS |
+
+#### StreamType
+
+码流类型。运行时常量：`STREAM_TYPE`。
+
+| 成员    | 值  | 说明     |
+| ------- | --- | -------- |
+| `Main`  | `1` | 主码流   |
+| `Sub`   | `2` | 子码流   |
+| `Third` | `3` | 第三码流 |
+
+#### Layout
+
+窗口分屏布局。运行时常量：`LAYOUT`。
+
+| 成员      | 值  | 说明           |
+| --------- | --- | -------------- |
+| `Single`  | `1` | `1×1` 单画面   |
+| `Quad`    | `2` | `2×2` 四分屏   |
+| `Nine`    | `3` | `3×3` 九分屏   |
+| `Sixteen` | `4` | `4×4` 十六分屏 |
+
+#### FileDialogType
+
+文件选择对话框模式。运行时常量：`FILE_DIALOG`。
+
+| 成员        | 值  | 说明         |
+| ----------- | --- | ------------ |
+| `Directory` | `0` | 选择文件夹   |
+| `File`      | `1` | 选择单个文件 |
+
+#### RestoreMode
+
+设备恢复出厂模式。运行时常量：`RESTORE_MODE`。
+
+| 成员    | 值        | 说明                                 |
+| ------- | --------- | ------------------------------------ |
+| `Basic` | `'basic'` | 简单恢复（保留网络、用户等基础参数） |
+| `Full`  | `'full'`  | 完全恢复出厂设置                     |
+
+#### PlayStatus
+
+`getWindowStatus()` 返回的播放状态。运行时常量：`PLAY_STATUS`。
 
 | 成员            | 值  | 说明     |
 | --------------- | --- | -------- |
 | `Idle`          | `0` | 空闲     |
-| `Preview`       | `1` | 预览     |
-| `Playback`      | `2` | 回放     |
+| `Preview`       | `1` | 预览中   |
+| `Playback`      | `2` | 回放中   |
 | `Paused`        | `3` | 暂停     |
 | `SingleFrame`   | `4` | 单帧     |
 | `Reverse`       | `5` | 倒放     |
 | `ReversePaused` | `6` | 倒放暂停 |
 
-#### `PTZ_COMMAND`
+#### PtzCommand
+
+云台控制动作。运行时常量：`PTZ_COMMAND`。
 
 | 成员        | 值   | 说明     |
 | ----------- | ---- | -------- |
@@ -868,15 +912,57 @@ export function CameraPanel() {
 | `IrisOpen`  | `14` | 光圈开   |
 | `IrisClose` | `15` | 光圈关   |
 
-#### 转码常量
+#### TranscodeFrameRate
 
-| 常量                   | 成员与取值                                                                                                                                                                                                                                                                                                                                   |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TRANSCODE_FRAME_RATE` | `All='0'`、`Fps1='5'`、`Fps2='6'`、`Fps4='7'`、`Fps6='8'`、`Fps8='9'`、`Fps10='10'`、`Fps12='11'`、`Fps16='12'`、`Fps20='13'`、`Fps15='14'`、`Fps18='15'`、`Fps22='16'`、`Auto='255'`                                                                                                                                                        |
-| `TRANSCODE_RESOLUTION` | `CIF='1'`、`QCIF='2'`、`D1='3'`、`Auto='255'`                                                                                                                                                                                                                                                                                                |
-| `TRANSCODE_BITRATE`    | `K32='2'`、`K48='3'`、`K64='4'`、`K80='5'`、`K96='6'`、`K128='7'`、`K160='8'`、`K192='9'`、`K224='10'`、`K256='11'`、`K320='12'`、`K384='13'`、`K448='14'`、`K512='15'`、`K640='16'`、`K768='17'`、`K896='18'`、`K1024='19'`、`K1280='20'`、`K1536='21'`、`K1792='22'`、`K2048='23'`、`K3072='24'`、`K4096='25'`、`K8192='26'`、`Auto='255'` |
+回放转码帧率档位。运行时常量：`TRANSCODE_FRAME_RATE`。
 
-#### `PLUGIN_EVENT`
+| 成员    | 值      | 说明     |
+| ------- | ------- | -------- |
+| `All`   | `'0'`   | 全部帧率 |
+| `Fps1`  | `'5'`   | 1 fps    |
+| `Fps2`  | `'6'`   | 2 fps    |
+| `Fps4`  | `'7'`   | 4 fps    |
+| `Fps6`  | `'8'`   | 6 fps    |
+| `Fps8`  | `'9'`   | 8 fps    |
+| `Fps10` | `'10'`  | 10 fps   |
+| `Fps12` | `'11'`  | 12 fps   |
+| `Fps16` | `'12'`  | 16 fps   |
+| `Fps20` | `'13'`  | 20 fps   |
+| `Fps15` | `'14'`  | 15 fps   |
+| `Fps18` | `'15'`  | 18 fps   |
+| `Fps22` | `'16'`  | 22 fps   |
+| `Auto`  | `'255'` | 自动     |
+
+#### TranscodeResolution
+
+回放转码分辨率档位。运行时常量：`TRANSCODE_RESOLUTION`。
+
+| 成员   | 值      | 说明 |
+| ------ | ------- | ---- |
+| `CIF`  | `'1'`   | CIF  |
+| `QCIF` | `'2'`   | QCIF |
+| `D1`   | `'3'`   | D1   |
+| `Auto` | `'255'` | 自动 |
+
+#### TranscodeBitrate
+
+回放转码码率档位（单位 kbps，`Auto` 表示自动）。运行时常量：`TRANSCODE_BITRATE`。
+
+| 成员   | 值     | 成员    | 值     | 成员    | 值      |
+| ------ | ------ | ------- | ------ | ------- | ------- |
+| `K32`  | `'2'`  | `K256`  | `'11'` | `K1280` | `'20'`  |
+| `K48`  | `'3'`  | `K320`  | `'12'` | `K1536` | `'21'`  |
+| `K64`  | `'4'`  | `K384`  | `'13'` | `K1792` | `'22'`  |
+| `K80`  | `'5'`  | `K448`  | `'14'` | `K2048` | `'23'`  |
+| `K96`  | `'6'`  | `K512`  | `'15'` | `K3072` | `'24'`  |
+| `K128` | `'7'`  | `K640`  | `'16'` | `K4096` | `'25'`  |
+| `K160` | `'8'`  | `K768`  | `'17'` | `K8192` | `'26'`  |
+| `K192` | `'9'`  | `K896`  | `'18'` | `Auto`  | `'255'` |
+| `K224` | `'10'` | `K1024` | `'19'` |         |         |
+
+#### PluginEventCode
+
+`plugin:event` 事件回调中的 `eventType` 取值。运行时常量：`PLUGIN_EVENT`。
 
 | 成员            | 值   | 说明                   |
 | --------------- | ---- | ---------------------- |
@@ -885,46 +971,58 @@ export function CameraPanel() {
 | `AudioTalkFail` | `3`  | 对讲失败               |
 | `NoFreeSpace`   | `21` | 本地录像存储空间不足   |
 
-#### `SDK_RUNTIME_ERROR`
+#### SdkRuntimeError
 
-| 错误码 | 说明                                              |
-| ------ | ------------------------------------------------- |
-| `1001` | 码流传输过程异常                                  |
-| `1002` | 回放结束                                          |
-| `1003` | 取流失败，连接被动断开                            |
-| `1004` | 对讲连接被动断开                                  |
-| `1005` | 广播连接被动断开                                  |
-| `1006` | 视频编码格式不支持，目前只支持 H.264 / H.265      |
-| `1007` | 网络异常导致 WebSocket 断开                       |
-| `1008` | 首帧回调超时                                      |
-| `1009` | 对讲码流传输过程异常                              |
-| `1010` | 广播码流传输过程异常                              |
-| `1011` | 数据接收异常，请检查是否修改了视频格式            |
-| `1012` | 播放资源不足                                      |
-| `1013` | 当前环境不支持该鱼眼展开模式                      |
-| `1014` | 外部强制关闭                                      |
-| `1015` | 获取播放 URL 失败                                 |
-| `1016` | 文件下载完成                                      |
-| `1017` | 密码错误                                          |
-| `1018` | 链接到萤石平台失败                                |
-| `1019` | 未找到录像片段                                    |
-| `1020` | 水印模式等场景，当前通道需要重新播放              |
-| `1021` | 缓存溢出                                          |
-| `1022` | 采集音频失败：非 https/localhost 域名或未插耳机等 |
+`plugin:error` 事件回调中的 `errorCode` 取值。运行时常量：`SDK_RUNTIME_ERROR`（值 → 中文描述）。
+
+| 错误码 | 说明                                                |
+| ------ | --------------------------------------------------- |
+| `1001` | 码流传输过程异常                                    |
+| `1002` | 回放结束                                            |
+| `1003` | 取流失败，连接被动断开                              |
+| `1004` | 对讲连接被动断开                                    |
+| `1005` | 广播连接被动断开                                    |
+| `1006` | 视频编码格式不支持，仅支持 H.264 / H.265            |
+| `1007` | 网络异常导致 WebSocket 断开                         |
+| `1008` | 首帧回调超时                                        |
+| `1009` | 对讲码流传输过程异常                                |
+| `1010` | 广播码流传输过程异常                                |
+| `1011` | 数据接收异常，请检查是否修改了视频格式              |
+| `1012` | 播放资源不足                                        |
+| `1013` | 当前环境不支持该鱼眼展开模式                        |
+| `1014` | 外部强制关闭                                        |
+| `1015` | 获取播放 URL 失败                                   |
+| `1016` | 文件下载完成                                        |
+| `1017` | 密码错误                                            |
+| `1018` | 链接到萤石平台失败                                  |
+| `1019` | 未找到录像片段                                      |
+| `1020` | 水印模式等场景，当前通道需要重新播放                |
+| `1021` | 缓存溢出                                            |
+| `1022` | 采集音频失败：非 https / localhost 域名或未插耳机等 |
+
+#### 其他常量
+
+无对应 TS 字面量类型，直接以常量形式使用。
+
+| 常量                      | 取值                               | 说明                                                  |
+| ------------------------- | ---------------------------------- | ----------------------------------------------------- |
+| `DEFAULT_PORT`            | `HTTP=80`、`HTTPS=443`、`RTSP=554` | 协议默认端口                                          |
+| `PTZ_SPEED_RANGE`         | `{ min: 1, max: 7, default: 4 }`   | 云台速度合法范围与推荐默认值                          |
+| `RECORD_SEARCH_PAGE_SIZE` | `40`                               | `searchRecords()` 每页条数（与 SDK 内部分页大小一致） |
 
 ### 类型速查
 
-| 类型                   | 字段或说明                                                                       |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| `DeviceSession`        | `id`、`host`、`port`、`username`、`protocol`                                     |
-| `DeviceInfo`           | `deviceName`、`deviceId`、`deviceType`、`model`、`serialNumber`、版本字段、`raw` |
-| `DevicePort`           | `iDevicePort`、`iRtspPort`、`iHttpPort?`、`iWebSocketPort?`、`iWebSocketsPort?`  |
-| `ChannelInfo`          | `id`、`name`、`kind`、`online`、`enabled`、`videoFormat?`                        |
-| `WindowStatus`         | `index`、`deviceId`、`channelId`、`playStatus`、`raw`                            |
-| `RecordMatch`          | `trackId`、`startTime`、`endTime`、`fileName`、`playbackUri`、`kind`             |
-| `RecordSearchResult`   | `matches`、`status`、`count`、`raw`                                              |
-| `OpenFileDialogResult` | `szFileName`、`file`                                                             |
-| `HikError`             | `name`、`code`、`message`、`details`、`cause`                                    |
+| 类型                   | 字段或说明                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `DeviceSession`        | `id`、`host`、`port`、`username`、`protocol`                                         |
+| `DeviceInfo`           | `deviceName`、`deviceId`、`deviceType`、`model`、`serialNumber`、版本字段、`raw`     |
+| `DevicePort`           | `iDevicePort`、`iRtspPort`、`iHttpPort?`、`iWebSocketPort?`、`iWebSocketsPort?`      |
+| `ChannelInfo`          | `id`、`name`、`kind`、`online`、`enabled`、`videoFormat?`                            |
+| `WindowStatus`         | `index`、`deviceId`、`channelId`、`playStatus`（[`PlayStatus`](#playstatus)）、`raw` |
+| `RecordMatch`          | `trackId`、`startTime`、`endTime`、`fileName`、`playbackUri`、`kind`                 |
+| `RecordSearchResult`   | `matches`、`status`、`count`、`raw`                                                  |
+| `OpenFileDialogResult` | `szFileName`、`file`                                                                 |
+| `HikError`             | `name`、`code`、`message`、`details`、`cause`                                        |
 
 ## 事件
 
@@ -947,26 +1045,26 @@ player.off('preview:started')
 
 事件列表：
 
-| 事件名                    | 负载                                                     | 说明               |
-| ------------------------- | -------------------------------------------------------- | ------------------ |
-| `plugin:initialized`      | `void`                                                   | 初始化完成         |
-| `plugin:destroyed`        | `void`                                                   | 销毁完成           |
-| `plugin:event`            | `{ eventType, windowIndex, param2 }`                     | 播放异常或状态事件 |
-| `plugin:error`            | `{ windowIndex, errorCode, error }`                      | 插件错误           |
-| `plugin:performance-lack` | `void`                                                   | 设备或环境性能不足 |
-| `plugin:secret-key-error` | `{ windowIndex }`                                        | 码流加密密钥错误   |
-| `window:selected`         | `{ windowIndex }`                                        | 用户选中窗口       |
-| `window:dblclick`         | `{ windowIndex, fullScreen }`                            | 用户双击窗口       |
-| `device:connected`        | `DeviceSession`                                          | 登录成功           |
-| `device:disconnected`     | `{ deviceId }`                                           | 登出成功           |
-| `preview:started`         | `{ deviceId, channel, windowIndex, zeroChannel }`        | 预览开始           |
-| `preview:stopped`         | `{ deviceId, windowIndex }`                              | 预览停止           |
-| `preview:stopped-all`     | `void`                                                   | 所有窗口停止       |
-| `playback:started`        | `{ deviceId, channel, windowIndex, startTime, endTime }` | 回放开始           |
-| `playback:stopped`        | `{ deviceId, windowIndex }`                              | 回放停止           |
-| `recording:started`       | `{ fileName, windowIndex }`                              | 本地录像开始       |
-| `recording:stopped`       | `{ windowIndex }`                                        | 本地录像停止       |
-| `capture:completed`       | `{ fileName, windowIndex, asFile }`                      | 抓拍完成           |
+| 事件名                    | 负载                                                                          | 说明               |
+| ------------------------- | ----------------------------------------------------------------------------- | ------------------ |
+| `plugin:initialized`      | `void`                                                                        | 初始化完成         |
+| `plugin:destroyed`        | `void`                                                                        | 销毁完成           |
+| `plugin:event`            | `{ eventType:` [`PluginEventCode`](#plugineventcode)`, windowIndex, param2 }` | 播放异常或状态事件 |
+| `plugin:error`            | `{ windowIndex, errorCode:` [`SdkRuntimeError`](#sdkruntimeerror)`, error }`  | 插件错误           |
+| `plugin:performance-lack` | `void`                                                                        | 设备或环境性能不足 |
+| `plugin:secret-key-error` | `{ windowIndex }`                                                             | 码流加密密钥错误   |
+| `window:selected`         | `{ windowIndex }`                                                             | 用户选中窗口       |
+| `window:dblclick`         | `{ windowIndex, fullScreen }`                                                 | 用户双击窗口       |
+| `device:connected`        | `DeviceSession`                                                               | 登录成功           |
+| `device:disconnected`     | `{ deviceId }`                                                                | 登出成功           |
+| `preview:started`         | `{ deviceId, channel, windowIndex, zeroChannel }`                             | 预览开始           |
+| `preview:stopped`         | `{ deviceId, windowIndex }`                                                   | 预览停止           |
+| `preview:stopped-all`     | `void`                                                                        | 所有窗口停止       |
+| `playback:started`        | `{ deviceId, channel, windowIndex, startTime, endTime }`                      | 回放开始           |
+| `playback:stopped`        | `{ deviceId, windowIndex }`                                                   | 回放停止           |
+| `recording:started`       | `{ fileName, windowIndex }`                                                   | 本地录像开始       |
+| `recording:stopped`       | `{ windowIndex }`                                                             | 本地录像停止       |
+| `capture:completed`       | `{ fileName, windowIndex, asFile }`                                           | 抓拍完成           |
 
 常见事件值：
 

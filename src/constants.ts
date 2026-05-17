@@ -195,7 +195,7 @@ export const PLUGIN_EVENT = {
  * 设备/插件运行时错误码与中文描述。
  * 触发场景：`cbPluginErrorHandler(wnd, code, err)`，或部分流相关回调的 `iErrorCode`。
  */
-export const SDK_RUNTIME_ERROR: Readonly<Record<number, string>> = Object.freeze({
+export const SDK_RUNTIME_ERROR = Object.freeze({
   1001: '码流传输过程异常',
   1002: '回放结束',
   1003: '取流失败，连接被动断开',
@@ -225,6 +225,7 @@ export const SDK_RUNTIME_ERROR: Readonly<Record<number, string>> = Object.freeze
 /** 协议字符串（库面向用户的形态） */
 export type ProtocolScheme = 'http' | 'https'
 
+export type Protocol = typeof PROTOCOL[keyof typeof PROTOCOL]
 export type StreamType = typeof STREAM_TYPE[keyof typeof STREAM_TYPE]
 export type Layout = typeof LAYOUT[keyof typeof LAYOUT]
 export type PlayStatus = typeof PLAY_STATUS[keyof typeof PLAY_STATUS]
@@ -232,3 +233,7 @@ export type PtzCommand = typeof PTZ_COMMAND[keyof typeof PTZ_COMMAND]
 export type FileDialogType = typeof FILE_DIALOG[keyof typeof FILE_DIALOG]
 export type RestoreMode = typeof RESTORE_MODE[keyof typeof RESTORE_MODE]
 export type PluginEventCode = typeof PLUGIN_EVENT[keyof typeof PLUGIN_EVENT]
+export type TranscodeFrameRate = typeof TRANSCODE_FRAME_RATE[keyof typeof TRANSCODE_FRAME_RATE]
+export type TranscodeResolution = typeof TRANSCODE_RESOLUTION[keyof typeof TRANSCODE_RESOLUTION]
+export type TranscodeBitrate = typeof TRANSCODE_BITRATE[keyof typeof TRANSCODE_BITRATE]
+export type SdkRuntimeError = keyof typeof SDK_RUNTIME_ERROR

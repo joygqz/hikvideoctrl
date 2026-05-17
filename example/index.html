@@ -93,7 +93,7 @@
       <h1>海康威视视频控制库示例</h1>
       <a href="https://github.com/joygqz/hikvideoctrl" target="_blank" rel="noopener" id="github-link" style="position: absolute; top: 0; right: 0; text-decoration: none; background: #fff; border-radius: 4px; border: 1px solid #e0e0e0; padding: 4px 10px; margin: 8px 12px; font-size: 13px; color: #222; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: background 0.2s; z-index: 10;">GitHub</a>
     </div>
-    
+
     <div>
       <h2>设备登录</h2>
       <label>设备 IP: <input type="text" id="deviceIP" value="192.168.1.100"></label><br>
@@ -103,20 +103,20 @@
       <button onclick="connectDevice()" id="connectBtn">连接设备</button>
       <button onclick="disconnectDevice()" id="disconnectBtn" disabled>断开连接</button>
     </div>
-    
+
     <hr>
-    
+
     <div>
       <h2>视频播放窗口</h2>
       <div id="videoContainer" style="width: 800px; height: 600px; background: #000; border: 1px solid #ccc;"></div>
     </div>
-    
+
     <hr>
-    
+
     <div>
       <h2>视频控制</h2>
       <label>通道号: <input type="number" id="channelId" value="1" min="1" max="64"></label>
-      <label>码流类型: 
+      <label>码流类型:
         <select id="streamType">
           <option value="1">主码流</option>
           <option value="2">子码流</option>
@@ -125,9 +125,9 @@
       <button onclick="startPreview()" id="previewBtn" disabled>开始预览</button>
       <button onclick="stopPreview()" id="stopBtn" disabled>停止预览</button>
     </div>
-    
+
     <hr>
-    
+
     <div>
       <h2>PTZ 云台控制</h2>
       <table class="ptz-table">
@@ -150,27 +150,27 @@
       <button onclick="ptzControl('zoom-in')">放大</button>
       <button onclick="ptzControl('zoom-out')">缩小</button>
     </div>
-    
+
     <hr>
-    
+
     <div>
       <h2>录像与抓拍</h2>
       <button onclick="captureImage()">抓拍图片</button>
       <button onclick="startRecord()">开始录像</button>
       <button onclick="stopRecord()">停止录像</button>
     </div>
-    
+
     <hr>
-    
+
     <div>
       <h2>预置位</h2>
       <label>预置位号 (1-255): <input type="number" id="presetNumber" value="1" min="1" max="255"></label><br>
       <button onclick="setPreset()">设置预置位</button>
       <button onclick="gotoPreset()">调用预置位</button>
     </div>
-    
+
     <hr>
-    
+
     <div>
       <h2>操作日志</h2>
       <textarea id="logOutput" readonly style="width: 800px; height: 200px;"></textarea><br>
@@ -178,84 +178,82 @@
     </div>
 
     <script type="module">
-      import { createHikVideoClient, PTZControlType } from '../dist/index.js'
+      import { createHikPlayer, PTZ_COMMAND, STREAM_TYPE } from '../dist/index.js'
 
-      // 全局变量
-      let client = null
+      // 全局状态
+      let player = null
       let currentDeviceId = null
       let isConnected = false
       let isPlaying = false
+      let lastPtzAction = null
 
-      // 初始化客户端
-      function initClient() {
-        client = createHikVideoClient()
-        
-        // 绑定事件监听器
-        client.on('device:connected', (device) => {
+      // 初始化播放器
+      function initPlayer() {
+        player = createHikPlayer()
+
+        player.on('device:connected', (device) => {
           log(`设备连接成功: ${device.host}:${device.port}`)
           updateConnectionStatus(true)
           enableControls(true)
         })
-        
-        client.on('device:disconnected', ({ deviceId }) => {
+
+        player.on('device:disconnected', ({ deviceId }) => {
           log(`设备已断开: ${deviceId}`)
           updateConnectionStatus(false)
           updatePlayStatus(false)
           enableControls(false)
         })
-        
-        client.on('preview:started', ({ deviceId, channel, windowIndex }) => {
+
+        player.on('preview:started', ({ deviceId, channel, windowIndex }) => {
           log(`开始预览 - 设备: ${deviceId}, 通道: ${channel}, 窗口: ${windowIndex}`)
           updatePlayStatus(true)
         })
-        
-        client.on('preview:stopped', ({ deviceId, windowIndex }) => {
+
+        player.on('preview:stopped', ({ deviceId, windowIndex }) => {
           log(`停止预览 - 设备: ${deviceId}, 窗口: ${windowIndex}`)
           updatePlayStatus(false)
         })
-        
-        client.on('recording:started', ({ fileName, windowIndex }) => {
+
+        player.on('recording:started', ({ fileName, windowIndex }) => {
           log(`开始录像: ${fileName} (窗口 ${windowIndex})`)
         })
-        
-        client.on('recording:stopped', ({ windowIndex }) => {
+
+        player.on('recording:stopped', ({ windowIndex }) => {
           log(`停止录像 (窗口 ${windowIndex})`)
         })
-        
-        client.on('capture:completed', ({ fileName, windowIndex, format }) => {
-          log(`截图完成: ${fileName} (${format}, 窗口 ${windowIndex})`)
+
+        player.on('capture:completed', ({ fileName, windowIndex, asFile }) => {
+          log(`抓拍完成: ${fileName} (窗口 ${windowIndex}, ${asFile ? '已下载' : '回调数据'})`)
         })
-        
-        client.on('plugin:error', ({ windowIndex, errorCode, error }) => {
-          log(`播放错误 [窗口 ${windowIndex}, 错误码 ${errorCode}]: ${JSON.stringify(error)}`)
+
+        player.on('plugin:error', ({ windowIndex, errorCode, error }) => {
+          log(`插件错误 [窗口 ${windowIndex}, 错误码 ${errorCode}]: ${error?.message ?? error}`)
         })
-        
-        log('客户端初始化完成')
+
+        log('播放器初始化完成')
       }
 
       // 连接设备
-      window.connectDevice = async function() {
+      window.connectDevice = async function () {
         const host = document.getElementById('deviceIP').value.trim()
-        const port = parseInt(document.getElementById('devicePort').value)
+        const port = Number.parseInt(document.getElementById('devicePort').value, 10)
         const username = document.getElementById('username').value.trim()
         const password = document.getElementById('password').value.trim()
-        
+
         if (!host || !port || !username || !password) {
           log('请填写完整的设备信息')
           return
         }
-        
+
         try {
-          // 检查是否支持无插件模式
-          if (!client.supportsNoPlugin()) {
-            log('当前浏览器不支持无插件模式')
+          if (!player.supportsNoPlugin()) {
+            log('当前浏览器不支持无插件模式（需 Chromium ≥ 91）')
             return
           }
-          
-          // 初始化插件（仅首次连接时需要）
-          if (!client.isInitialized) {
+
+          if (!player.isInitialized) {
             log('正在初始化插件...')
-            await client.initialize({
+            await player.init({
               container: 'videoContainer',
               width: '100%',
               height: '100%',
@@ -265,221 +263,229 @@
               },
               onError: (windowIndex, errorCode, error) => {
                 log(`插件错误 [窗口 ${windowIndex}, 错误码 ${errorCode}]: ${error}`)
-              }
+              },
             })
             log('插件初始化完成')
           }
-          
-          log('正在连接设备...')
-          const device = await client.connectDevice({
+
+          log('正在登录设备...')
+          const device = await player.login({
             host,
             port,
             username,
             password,
-            protocol: 'http'
+            protocol: 'http',
           })
-          
+
           currentDeviceId = device.id
-          log(`设备ID: ${currentDeviceId}`)
-          
-          // 获取设备信息
+          log(`设备 ID: ${currentDeviceId}`)
+
           try {
-            const deviceInfo = await client.getDeviceInfo(currentDeviceId)
-            const deviceName = deviceInfo.querySelector('deviceName')?.textContent || '未知'
-            const model = deviceInfo.querySelector('model')?.textContent || '未知'
-            log(`设备名称: ${deviceName}, 型号: ${model}`)
-            
-            // 获取通道列表
-            const channels = await client.getChannels(currentDeviceId)
+            const info = await player.getDeviceInfo(currentDeviceId)
+            if (info)
+              log(`设备名称: ${info.deviceName}, 型号: ${info.model}, 序列号: ${info.serialNumber}`)
+
+            const channels = await player.getChannels(currentDeviceId)
             log(`共 ${channels.length} 个通道`)
-            channels.forEach(ch => {
-              log(`  - 通道 ${ch.id}: ${ch.name} [${ch.type}] ${ch.online ? '在线' : '离线'}`)
+            channels.forEach((ch) => {
+              log(`  - 通道 ${ch.id}: ${ch.name} [${ch.kind}] ${ch.online ? '在线' : '离线'}`)
             })
-          } catch (err) {
+          }
+          catch (err) {
             log(`获取设备信息失败: ${err.message}`)
           }
-          
-        } catch (error) {
+        }
+        catch (error) {
           log(`连接失败: ${error.message}`)
           console.error(error)
         }
       }
 
       // 断开设备
-      window.disconnectDevice = async function() {
+      window.disconnectDevice = async function () {
         try {
-          if (isPlaying) {
-            await client.stopPreview(0)
-          }
-          await client.disconnectDevice(currentDeviceId)
+          if (isPlaying)
+            await player.stop(0)
+          await player.logout(currentDeviceId)
           currentDeviceId = null
-        } catch (error) {
+        }
+        catch (error) {
           log(`断开连接失败: ${error.message}`)
         }
       }
 
       // 开始预览
-      window.startPreview = async function() {
+      window.startPreview = async function () {
         if (!currentDeviceId || !isConnected) {
           log('请先连接设备')
           return
         }
-        
+
         try {
-          const channel = parseInt(document.getElementById('channelId').value)
-          const streamType = parseInt(document.getElementById('streamType').value)
-          
-          log(`正在加载视频流 - 通道 ${channel}, 码流类型 ${streamType === 1 ? '主码流' : '子码流'}...`)
-          
-          await client.startPreview(currentDeviceId, {
+          const channel = Number.parseInt(document.getElementById('channelId').value, 10)
+          const streamType = Number.parseInt(document.getElementById('streamType').value, 10)
+
+          log(`正在加载视频流 - 通道 ${channel}, 码流类型 ${streamType === STREAM_TYPE.Main ? '主码流' : '子码流'}...`)
+
+          await player.startPreview(currentDeviceId, {
             channel,
             streamType,
-            windowIndex: 0
+            windowIndex: 0,
           })
-          
-        } catch (error) {
+        }
+        catch (error) {
           log(`开始预览失败: ${error.message}`)
           console.error(error)
         }
       }
 
       // 停止预览
-      window.stopPreview = async function() {
+      window.stopPreview = async function () {
         try {
-          await client.stopPreview(0)
-        } catch (error) {
+          await player.stop(0)
+        }
+        catch (error) {
           log(`停止预览失败: ${error.message}`)
         }
       }
 
-      // PTZ控制
-      window.ptzControl = async function(direction) {
+      // PTZ 控制
+      window.ptzControl = async function (direction) {
         if (!currentDeviceId || !isConnected) {
           log('请先连接设备')
           return
         }
-        
+
         const commandMap = {
-          'up': PTZControlType.Up,
-          'down': PTZControlType.Down,
-          'left': PTZControlType.Left,
-          'right': PTZControlType.Right,
-          'up-left': PTZControlType.UpLeft,
-          'up-right': PTZControlType.UpRight,
-          'down-left': PTZControlType.DownLeft,
-          'down-right': PTZControlType.DownRight,
-          'zoom-in': PTZControlType.ZoomIn,
-          'zoom-out': PTZControlType.ZoomOut
+          'up': PTZ_COMMAND.Up,
+          'down': PTZ_COMMAND.Down,
+          'left': PTZ_COMMAND.Left,
+          'right': PTZ_COMMAND.Right,
+          'up-left': PTZ_COMMAND.UpLeft,
+          'up-right': PTZ_COMMAND.UpRight,
+          'down-left': PTZ_COMMAND.DownLeft,
+          'down-right': PTZ_COMMAND.DownRight,
+          'zoom-in': PTZ_COMMAND.ZoomIn,
+          'zoom-out': PTZ_COMMAND.ZoomOut,
         }
-        
+
         try {
           if (direction === 'stop') {
-            // 停止所有PTZ动作（使用上次的动作）
-            await client.ptzStop(PTZControlType.Up, 0)
-            log('PTZ控制: 停止')
-          } else {
-            const action = commandMap[direction]
-            if (action !== undefined) {
-              await client.ptzStart({
-                action,
-                speed: 5,
-                windowIndex: 0
-              })
-              log(`PTZ控制: ${direction}`)
-              
-              // 2秒后自动停止
-              setTimeout(async () => {
-                try {
-                  await client.ptzStop(action, 0)
-                  log('PTZ控制: 自动停止')
-                } catch (err) {
-                  console.error('停止PTZ失败:', err)
-                }
-              }, 2000)
-            }
+            const action = lastPtzAction ?? PTZ_COMMAND.Up
+            await player.ptzStop(action, 0)
+            lastPtzAction = null
+            log('PTZ 控制: 停止')
+            return
           }
-        } catch (error) {
-          log(`PTZ控制失败: ${error.message}`)
+
+          const action = commandMap[direction]
+          if (action === undefined)
+            return
+
+          lastPtzAction = action
+          await player.ptzStart({
+            action,
+            speed: 5,
+            windowIndex: 0,
+          })
+          log(`PTZ 控制: ${direction}`)
+
+          setTimeout(async () => {
+            try {
+              await player.ptzStop(action, 0)
+              log('PTZ 控制: 自动停止')
+            }
+            catch (err) {
+              console.error('停止 PTZ 失败:', err)
+            }
+          }, 2000)
+        }
+        catch (error) {
+          log(`PTZ 控制失败: ${error.message}`)
         }
       }
 
       // 抓拍图片
-      window.captureImage = async function() {
+      window.captureImage = async function () {
         if (!isPlaying) {
           log('请先开始预览')
           return
         }
-        
+
         try {
-          const fileName = await client.capture({
+          const fileName = await player.capture({
             windowIndex: 0,
-            fileName: `capture_${Date.now()}`,
-            format: 'jpg'
+            fileName: `capture_${Date.now()}.jpg`,
           })
           log(`图片抓拍成功: ${fileName}`)
-        } catch (error) {
+        }
+        catch (error) {
           log(`图片抓拍失败: ${error.message}`)
         }
       }
 
       // 开始录像
-      window.startRecord = async function() {
+      window.startRecord = async function () {
         if (!isPlaying) {
           log('请先开始预览')
           return
         }
-        
+
         try {
-          const fileName = await client.startRecording({
+          const fileName = await player.startRecording({
             windowIndex: 0,
             fileName: `record_${Date.now()}`,
-            directoryByDate: true
+            byDateDirectory: true,
           })
           log(`开始录像: ${fileName}`)
-        } catch (error) {
+        }
+        catch (error) {
           log(`开始录像失败: ${error.message}`)
         }
       }
 
       // 停止录像
-      window.stopRecord = async function() {
+      window.stopRecord = async function () {
         try {
-          await client.stopRecording(0)
-        } catch (error) {
+          await player.stopRecording(0)
+        }
+        catch (error) {
           log(`停止录像失败: ${error.message}`)
         }
       }
 
       // 设置预置位
-      window.setPreset = async function() {
+      window.setPreset = async function () {
         if (!isConnected) {
           log('请先连接设备')
           return
         }
-        
-        const presetNumber = parseInt(document.getElementById('presetNumber').value)
-        
+
+        const presetNumber = Number.parseInt(document.getElementById('presetNumber').value, 10)
+
         try {
-          await client.setPreset(presetNumber, 0)
+          await player.setPreset(presetNumber, 0)
           log(`预置位 ${presetNumber} 设置成功`)
-        } catch (error) {
+        }
+        catch (error) {
           log(`设置预置位失败: ${error.message}`)
         }
       }
 
       // 调用预置位
-      window.gotoPreset = async function() {
+      window.gotoPreset = async function () {
         if (!isConnected) {
           log('请先连接设备')
           return
         }
-        
-        const presetNumber = parseInt(document.getElementById('presetNumber').value)
-        
+
+        const presetNumber = Number.parseInt(document.getElementById('presetNumber').value, 10)
+
         try {
-          await client.goPreset(presetNumber, 0)
+          await player.goPreset(presetNumber, 0)
           log(`已调用预置位 ${presetNumber}`)
-        } catch (error) {
+        }
+        catch (error) {
           log(`调用预置位失败: ${error.message}`)
         }
       }
@@ -488,48 +494,43 @@
       function log(message) {
         const logOutput = document.getElementById('logOutput')
         const timestamp = new Date().toLocaleTimeString()
-        const logEntry = `[${timestamp}] ${message}\n`
-        logOutput.value += logEntry
+        logOutput.value += `[${timestamp}] ${message}\n`
         logOutput.scrollTop = logOutput.scrollHeight
         console.log(message)
       }
 
       // 清空日志
-      window.clearLog = function() {
+      window.clearLog = function () {
         document.getElementById('logOutput').value = ''
         log('日志已清空')
       }
 
-      // 更新连接状态
       function updateConnectionStatus(connected) {
         isConnected = connected
         document.getElementById('connectBtn').disabled = connected
         document.getElementById('disconnectBtn').disabled = !connected
       }
 
-      // 更新播放状态
       function updatePlayStatus(playing) {
         isPlaying = playing
         document.getElementById('previewBtn').disabled = !isConnected || playing
         document.getElementById('stopBtn').disabled = !playing
       }
 
-      // 启用/禁用控制按钮
       function enableControls(enabled) {
         document.getElementById('previewBtn').disabled = !enabled
       }
 
       // 页面加载完成后初始化
-      document.addEventListener('DOMContentLoaded', function() {
-        initClient()
+      document.addEventListener('DOMContentLoaded', () => {
+        initPlayer()
         log('页面加载完成，准备就绪')
       })
 
       // 页面卸载时清理资源
-      window.addEventListener('beforeunload', function() {
-        if (client && currentDeviceId && isConnected) {
-          client.disconnectDevice(currentDeviceId).catch(console.error)
-        }
+      window.addEventListener('beforeunload', () => {
+        if (player && currentDeviceId && isConnected)
+          player.logout(currentDeviceId).catch(console.error)
       })
     </script>
   </body>

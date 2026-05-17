@@ -27,10 +27,15 @@ export type {
   Layout,
   PlayStatus,
   PluginEventCode,
+  Protocol,
   ProtocolScheme,
   PtzCommand,
   RestoreMode,
+  SdkRuntimeError,
   StreamType,
+  TranscodeBitrate,
+  TranscodeFrameRate,
+  TranscodeResolution,
 } from './constants'
 
 export { HikError, type HikErrorCode, type HikErrorDetails, toHikError } from './errors'

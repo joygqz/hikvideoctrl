@@ -6,6 +6,9 @@ import type {
   PtzCommand,
   RestoreMode,
   StreamType,
+  TranscodeBitrate,
+  TranscodeFrameRate,
+  TranscodeResolution,
 } from './constants'
 import type { WebVideoCtrlSDK } from './sdk'
 
@@ -200,12 +203,12 @@ export interface PreviewOptions {
 
 /** 转码回放参数（对应 `oTransCodeParam`）。 */
 export interface PlaybackTranscode {
-  /** 帧率档位，见 `TRANSCODE_FRAME_RATE`。 */
-  frameRate?: string
-  /** 分辨率档位，见 `TRANSCODE_RESOLUTION`。 */
-  resolution?: string
-  /** 码率档位，见 `TRANSCODE_BITRATE`。 */
-  bitrate?: string
+  /** 帧率档位，取值见 `TRANSCODE_FRAME_RATE`。 */
+  frameRate?: TranscodeFrameRate
+  /** 分辨率档位，取值见 `TRANSCODE_RESOLUTION`。 */
+  resolution?: TranscodeResolution
+  /** 码率档位，取值见 `TRANSCODE_BITRATE`。 */
+  bitrate?: TranscodeBitrate
 }
 
 export interface PlaybackOptions extends Omit<PreviewOptions, 'zeroChannel'> {
