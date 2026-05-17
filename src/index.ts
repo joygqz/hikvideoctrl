@@ -1,59 +1,104 @@
-import { createHikVideoClient, HikVideoClient } from './HikVideoClient'
+/**
+ * hikvideoctrl —— 海康威视无插件视频 SDK 的现代化 TypeScript 封装。
+ *
+ * @packageDocumentation
+ */
 
-export { createHikVideoClient, HikVideoClient }
-export { createOperationError, HikSDKError } from './errors'
+export {
+  DEFAULT_PORT,
+  FILE_DIALOG,
+  LAYOUT,
+  PLAY_STATUS,
+  PLUGIN_EVENT,
+  PROTOCOL,
+  PTZ_COMMAND,
+  PTZ_SPEED_RANGE,
+  RECORD_SEARCH_PAGE_SIZE,
+  RESTORE_MODE,
+  SDK_RUNTIME_ERROR,
+  STREAM_TYPE,
+  TRANSCODE_BITRATE,
+  TRANSCODE_FRAME_RATE,
+  TRANSCODE_RESOLUTION,
+} from './constants'
+
+export type {
+  FileDialogType,
+  Layout,
+  PlayStatus,
+  PluginEventCode,
+  ProtocolScheme,
+  PtzCommand,
+  RestoreMode,
+  StreamType,
+} from './constants'
+
+export { HikError, type HikErrorCode, type HikErrorDetails, toHikError } from './errors'
+
+export { createHikPlayer, HikPlayer, isNoPluginSupported } from './HikPlayer'
+
+export {
+  callPromise,
+  callSync,
+  callWithCallback,
+  loadWebVideoCtrl,
+  type LoadWebVideoCtrlOptions,
+  type SdkAjaxOptions,
+  type SdkDevicePort,
+  type SdkHttpOptions,
+  type SdkInitOptions,
+  type SdkWindowInfo,
+  type WebVideoCtrlSDK,
+} from './sdk'
+
 export type {
   CaptureOptions,
   ChannelInfo,
+  ChannelKind,
   DeviceCredentials,
+  DeviceInfo,
+  DeviceLoginOptions,
   DevicePort,
   DeviceSession,
   DownloadByTimeOptions,
   DownloadOptions,
-  HikVideoEventMap,
-  HTTPRequestOptions,
+  HikPlayerEventMap,
+  HikPlayerOptions,
+  HttpRequestOptions,
+  ImportDeviceConfigOptions,
+  OpenFileDialogResult,
   PlaybackOptions,
+  PlaybackTranscode,
   PluginInitOptions,
   PreviewOptions,
-  PTZCommandOptions,
+  PtzControlOptions,
   RecordingOptions,
+  RecordKind,
+  RecordMatch,
   RecordSearchOptions,
+  RecordSearchResult,
+  RestoreDefaultOptions,
+  StartUpgradeOptions,
+  WindowStatus,
 } from './types'
+
 export {
-  delay,
-  encodeString,
+  currentTimestamp,
+  ensureXmlDocument,
   formatDate,
-  generateDeviceIdentify,
-  generateUniqueFileName,
-  getCurrentTimeString,
-  getTodayTimeRange,
-  isValidIP,
+  isHostname,
+  isIPv4,
+  isIPv6,
+  isValidHost,
   isValidPort,
   isValidTimeRange,
-  loadXML,
+  makeDeviceIdentify,
   normalizePort,
   parseDeviceIdentify,
+  parseXml,
+  stringifyXml,
+  todayTimeRange,
   toProtocolValue,
-  toXMLString,
-  uint8ArrayToBase64,
+  uniqueFileName,
+  xmlText,
 } from './utils'
-export {
-  AudioErrorCode,
-  DefaultPorts,
-  ErrorCodes,
-  FileFormat,
-  IPModePorts,
-  PackageType,
-  ProtocolType,
-  PTZControlType,
-  RecordType,
-  SEARCH_RECORDS_PER_PAGE,
-  StreamType,
-  WindowType,
-} from './utils/constants'
-
-export function isNoPluginSupported(): boolean {
-  return Boolean(window?.WebVideoCtrl?.I_SupportNoPlugin?.())
-}
-
-export default HikVideoClient

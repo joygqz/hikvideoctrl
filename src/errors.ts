@@ -1,73 +1,74 @@
 /**
- * 海康 SDK 错误码类型定义
+ * 错误码枚举。所有错误均以此为分类基础，便于上层 `switch` 处理或日志聚合。
+ *
+ * - `SDK_NOT_FOUND`         未检测到全局 `window.WebVideoCtrl`，多半是 `webVideoCtrl.js` 未先加载。
+ * - `SDK_METHOD_MISSING`    SDK 上的目标方法不存在，常见于版本不匹配。
+ * - `SDK_CALL_FAILED`       SDK 调用回调 `error` 或抛出异常，详情见 `details.status / responseXml`。
+ * - `NOT_INITIALIZED`       未调用 `init()` 就操作播放器。
+ * - `ALREADY_INITIALIZED`   已初始化的播放器被重复初始化。
+ * - `INVALID_ARGUMENT`      参数校验失败（如端口越界、时间区间反转）。
+ * - `DEVICE_NOT_FOUND`      未登录或已登出的设备被引用。
+ * - `WINDOW_NOT_PLAYING`    对未在播放状态的窗口执行 `stop / pause` 等操作。
+ * - `SCRIPT_LOAD_FAILED`    `loadWebVideoCtrl()` 加载脚本失败或超时。
  */
-export type HikSDKErrorCode
-  = | 'sdk-not-found' // SDK 未找到
-    | 'sdk-method-missing' // SDK 方法缺失
-    | 'sdk-call-failed' // SDK 调用失败
-    | 'sdk-initialization' // SDK 初始化失败
-    | 'validation' // 参数验证失败
-    | 'not-initialized' // 未初始化
-    | 'device-not-found' // 设备未找到
-    | 'window-state' // 窗口状态错误
-    | 'operation-failed' // 操作失败
+export type HikErrorCode
+  = | 'SDK_NOT_FOUND'
+    | 'SDK_METHOD_MISSING'
+    | 'SDK_CALL_FAILED'
+    | 'NOT_INITIALIZED'
+    | 'ALREADY_INITIALIZED'
+    | 'INVALID_ARGUMENT'
+    | 'DEVICE_NOT_FOUND'
+    | 'WINDOW_NOT_PLAYING'
+    | 'SCRIPT_LOAD_FAILED'
+
+/** 错误附带的调试信息。所有字段均可选，按需填充。 */
+export interface HikErrorDetails {
+  /** 触发错误的 SDK 方法名（若适用） */
+  method?: string
+  /** HTTP 状态码（来自 SDK `error(status, xmlDoc)` 回调） */
+  status?: number
+  /** 设备返回的 XML 文本（已序列化） */
+  responseXml?: string
+  /** SDK 同步返回值（如 `I_Logout` 返回 -1） */
+  returnValue?: unknown
+  /** 任意附加上下文 */
+  [key: string]: unknown
+}
 
 /**
- * 海康 SDK 自定义错误类
- * @example
- * ```typescript
- * throw new HikSDKError('device-not-found', '设备未连接', { deviceId: 'xxx' })
- * ```
+ * 海康封装库统一错误类型。
+ *
+ * 优先使用 `code` 做分支判断，避免依赖 `message` 文案；底层 SDK 抛出的原始错误
+ * 经由 `cause` 透传（依赖 ES2022 `Error.cause`，运行环境需支持）。
  */
-export class HikSDKError extends Error {
-  /** 错误名称 */
-  readonly name = 'HikSDKError'
+export class HikError extends Error {
+  override readonly name = 'HikError'
+  readonly code: HikErrorCode
+  readonly details?: HikErrorDetails
 
-  /** 错误码 */
-  readonly code: HikSDKErrorCode
-
-  /** 错误详情 */
-  readonly details?: unknown
-
-  /**
-   * 构造函数
-   * @param code 错误码
-   * @param message 错误信息
-   * @param details 错误详情
-   */
-  constructor(code: HikSDKErrorCode, message: string, details?: unknown) {
-    super(message)
+  constructor(
+    code: HikErrorCode,
+    message: string,
+    details?: HikErrorDetails,
+    cause?: unknown,
+  ) {
+    super(message, cause === undefined ? undefined : { cause })
     this.code = code
     this.details = details
-    // 修复原型链，确保 instanceof 正常工作
+    // 修复跨编译目标的原型链，保证 `err instanceof HikError` 始终成立
     Object.setPrototypeOf(this, new.target.prototype)
   }
 }
 
-/**
- * 断言函数，条件不满足时抛出错误
- * @param condition 条件表达式
- * @param error 要抛出的错误
- * @example
- * ```typescript
- * ensure(device, new HikSDKError('device-not-found', '设备未找到'))
- * ```
- */
-export function ensure(condition: unknown, error: HikSDKError): asserts condition {
-  if (!condition)
-    throw error
-}
-
-/**
- * 创建操作失败错误
- * @param message 错误信息
- * @param details 错误详情
- * @returns 操作失败错误实例
- * @example
- * ```typescript
- * throw createOperationError('连接设备失败', { host: '192.168.1.1' })
- * ```
- */
-export function createOperationError(message: string, details?: unknown): HikSDKError {
-  return new HikSDKError('operation-failed', message, details)
+/** 内部工具：将任意值收敛为 `HikError`，便于在 `catch` 中再抛出。 */
+export function toHikError(
+  error: unknown,
+  fallbackCode: HikErrorCode = 'SDK_CALL_FAILED',
+  fallbackMessage: string = '调用 SDK 失败',
+): HikError {
+  if (error instanceof HikError)
+    return error
+  const message = error instanceof Error ? error.message : fallbackMessage
+  return new HikError(fallbackCode, message, undefined, error)
 }
