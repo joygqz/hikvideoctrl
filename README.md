@@ -311,7 +311,7 @@ export function CameraPanel() {
 
 ### 加载与创建
 
-> 调用顺序：`loadWebVideoCtrl()` → `createHikPlayer()` → `player.init()` → 其他 API。
+调用顺序：`loadWebVideoCtrl()` → `createHikPlayer()` → `player.init()` → 其他 API。
 
 #### `loadWebVideoCtrl(scriptUrl: string, options?: LoadWebVideoCtrlOptions): Promise<WebVideoCtrlSDK>`
 
