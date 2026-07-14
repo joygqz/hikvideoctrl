@@ -1,7 +1,7 @@
 {
   "name": "hikvideoctrl",
   "type": "module",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "packageManager": "pnpm@10.33.4",
   "description": "海康威视无插件的现代 TypeScript 封装，统一 async/await API，覆盖设备登录、实时预览、录像回放、抓拍、PTZ 云台与设备维护。",
   "author": {
