@@ -56,6 +56,7 @@ export type {
   CaptureOptions,
   ChannelInfo,
   ChannelKind,
+  DeviceCaptureOptions,
   DeviceCredentials,
   DeviceInfo,
   DeviceLoginOptions,

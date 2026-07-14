@@ -9,6 +9,7 @@ import type {
 import type {
   CaptureOptions,
   ChannelInfo,
+  DeviceCaptureOptions,
   DeviceCredentials,
   DeviceInfo,
   DevicePort,
@@ -36,8 +37,8 @@ import { TypedEmitter } from './emitter'
 import { HikError } from './errors'
 import { callPromise, callSync, callWithCallback } from './sdk'
 import {
-  currentTimestamp,
   ensureXmlDocument,
+  formatDate,
   isValidHost,
   isValidTimeRange,
   makeDeviceIdentify,
@@ -63,6 +64,7 @@ export class HikPlayer {
   readonly #emitter = new TypedEmitter<HikPlayerEventMap>()
   readonly #devices = new Map<string, DeviceSession>()
   #initialized = false
+  #initializing = false
   #containerId: string | null = null
   #containerElement: HTMLElement | null = null
   #activeWindow = 0
@@ -105,6 +107,11 @@ export class HikPlayer {
     return Boolean(this.#sdk.I_SupportNoPlugin?.())
   }
 
+  /** 检查官方播放组件版本；无插件模式固定返回 `0`。 */
+  checkPluginVersion(): number {
+    return callSync<number>(this.#sdk, 'I_CheckPluginVersion')
+  }
+
   // ─────────────────────────── 生命周期 ───────────────────────────
 
   /**
@@ -114,7 +121,7 @@ export class HikPlayer {
    * `I_InsertOBJECTPlugin` 挂载到容器。
    */
   async init(options: PluginInitOptions): Promise<void> {
-    if (this.#initialized)
+    if (this.#initialized || this.#initializing)
       throw new HikError('ALREADY_INITIALIZED', '播放器已初始化，请勿重复调用 init()')
     if (!this.supportsNoPlugin())
       throw new HikError('SDK_NOT_FOUND', '当前浏览器不支持 WebVideoCtrl 无插件模式（需 Chromium ≥ 91）')
@@ -123,15 +130,32 @@ export class HikPlayer {
     const width = normalizeSize(options.width, element, 'width', 800)
     const height = normalizeSize(options.height, element, 'height', 600)
     const layout = options.layout ?? 1
+    ensureLayout(layout)
+    const timeout = options.timeout ?? 15_000
+    if (!Number.isFinite(timeout) || timeout <= 0)
+      throw new HikError('INVALID_ARGUMENT', '初始化超时时间必须为正数', { timeout })
+
+    this.#initializing = true
 
     await new Promise<void>((resolve, reject) => {
       const settle = { done: false }
+      let timer: ReturnType<typeof setTimeout> | undefined
       const fail = (err: HikError) => {
         if (settle.done)
           return
         settle.done = true
+        if (timer !== undefined)
+          clearTimeout(timer)
+        this.#initializing = false
         reject(err)
       }
+      timer = setTimeout(() => {
+        fail(new HikError(
+          'INITIALIZATION_TIMEOUT',
+          `底层播放组件初始化超时（${timeout}ms）`,
+          { method: 'I_InitPlugin', timeout },
+        ))
+      }, timeout)
 
       const initOptions: SdkInitOptions = {
         iWndowType: layout,
@@ -168,6 +192,8 @@ export class HikPlayer {
           options.onSecretKeyError?.(windowIndex)
         },
         cbInitPluginComplete: () => {
+          if (settle.done)
+            return
           try {
             const result = this.#sdk.I_InsertOBJECTPlugin(containerId)
             if (result !== 0) {
@@ -178,10 +204,13 @@ export class HikPlayer {
               return
             }
             this.#initialized = true
+            this.#initializing = false
             this.#containerId = containerId
             this.#containerElement = element
             this.#emitter.emit('plugin:initialized', undefined)
             settle.done = true
+            if (timer !== undefined)
+              clearTimeout(timer)
             resolve()
           }
           catch (err) {
@@ -267,27 +296,32 @@ export class HikPlayer {
   /** 切换分屏布局（1=1x1 / 2=2x2 / 3=3x3 / 4=4x4）。 */
   async changeLayout(layout: number): Promise<void> {
     this.#ensureInitialized()
+    ensureLayout(layout)
     await callPromise<void>(this.#sdk, 'I_ChangeWndNum', layout)
   }
 
   /**
    * 进入全屏播放。
-   * 无插件模式下底层 `I_FullScreen` 固定调用浏览器全屏 API，`enable` 参数仅为兼容签名而保留；
-   * 退出全屏请引导用户按 Esc。
+   * 官方无插件接口只能进入全屏；传 `false` 时由封装层调用浏览器 Fullscreen API 退出。
    */
   async fullScreen(enable: boolean = true): Promise<void> {
     this.#ensureInitialized()
+    if (!enable) {
+      if (typeof document !== 'undefined' && document.fullscreenElement)
+        await document.exitFullscreen()
+      return
+    }
     await callPromise<void>(this.#sdk, 'I_FullScreen', enable)
   }
 
   /** 获取窗口状态；未播放或越界返回 null。 */
   getWindowStatus(windowIndex: number = this.#activeWindow): PublicWindowStatus | null {
     this.#ensureInitialized()
-    const raw = callSync<SdkWindowInfo | null>(this.#sdk, 'I_GetWindowStatus', windowIndex)
+    const raw = callSync<SdkWindowInfo | null>(this.#sdk, 'I_GetWindowStatus', this.#windowIndex(windowIndex))
     return raw ? toPublicWindow(raw) : null
   }
 
-  /** 全部窗口（含未播放占位）。 */
+  /** 全部正在播放的窗口。 */
   getAllWindows(): PublicWindowStatus[] {
     this.#ensureInitialized()
     const list = callSync<SdkWindowInfo[]>(this.#sdk, 'I_GetWndSet') ?? []
@@ -316,6 +350,8 @@ export class HikPlayer {
       throw new HikError('INVALID_ARGUMENT', '密码不能为空')
 
     const protocol = credentials.protocol ?? 'http'
+    if (protocol !== 'http' && protocol !== 'https')
+      throw new HikError('INVALID_ARGUMENT', `不支持的设备协议：${String(protocol)}`)
     const port = normalizePort(credentials.port ?? (protocol === 'https' ? 443 : 80))
 
     const ajax: SdkAjaxOptions = {}
@@ -397,6 +433,11 @@ export class HikPlayer {
       encoderReleasedDate: xmlText(doc, 'encoderReleasedDate'),
       raw: doc,
     }
+  }
+
+  /** 获取设备安全能力版本 XML。 */
+  async getSecurityVersion(deviceId: string): Promise<Document | null> {
+    return this.#fetchXml('I_GetSecurityVersion', deviceId)
   }
 
   /** 同步读取设备 HTTP / RTSP 端口。 */
@@ -491,16 +532,18 @@ export class HikPlayer {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
 
-    const windowIndex = options.windowIndex ?? this.#activeWindow
+    const channel = ensurePositiveInteger(options.channel, '通道号')
+    const streamType = ensureIntegerInRange(options.streamType ?? 1, 1, 3, '码流类型')
+    const windowIndex = this.#windowIndex(options.windowIndex)
+    await this.#stopWindowIfPlaying(windowIndex)
     const sdkOptions: Record<string, unknown> = {
       iWndIndex: windowIndex,
-      iChannelID: options.channel,
-      iStreamType: options.streamType ?? 1,
+      iChannelID: channel,
+      iStreamType: streamType,
       bZeroChannel: options.zeroChannel ?? false,
     }
     if (options.rtspPort !== undefined) {
       const rtspPort = normalizePort(options.rtspPort)
-      sdkOptions.iPort = rtspPort
       sdkOptions.iRtspPort = rtspPort
     }
     if (options.webSocketPort !== undefined)
@@ -511,7 +554,7 @@ export class HikPlayer {
     await callWithCallback<unknown>(this.#sdk, 'I_StartRealPlay', deviceId, sdkOptions)
     this.#emitter.emit('preview:started', {
       deviceId,
-      channel: options.channel,
+      channel,
       windowIndex,
       zeroChannel: options.zeroChannel ?? false,
     })
@@ -520,7 +563,7 @@ export class HikPlayer {
   /** 停止指定窗口的预览 / 回放，缺省为当前选中窗口。 */
   async stop(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    const target = windowIndex ?? this.#activeWindow
+    const target = this.#windowIndex(windowIndex)
     const status = this.getWindowStatus(target)
     if (!status)
       throw new HikError('WINDOW_NOT_PLAYING', `窗口 ${target} 未在播放`)
@@ -546,35 +589,29 @@ export class HikPlayer {
     if (!isValidTimeRange(options.startTime, options.endTime))
       throw new HikError('INVALID_ARGUMENT', `回放时间区间无效：${options.startTime} ~ ${options.endTime}`)
 
-    const windowIndex = options.windowIndex ?? this.#activeWindow
+    const channel = ensurePositiveInteger(options.channel, '通道号')
+    const streamType = ensureIntegerInRange(options.streamType ?? 1, 1, 2, '回放码流类型')
+    const windowIndex = this.#windowIndex(options.windowIndex)
+    await this.#stopWindowIfPlaying(windowIndex)
     const sdkOptions: Record<string, unknown> = {
       iWndIndex: windowIndex,
-      iChannelID: options.channel,
-      iStreamType: options.streamType ?? 1,
+      iChannelID: channel,
+      iStreamType: streamType,
       szStartTime: options.startTime,
       szEndTime: options.endTime,
     }
     if (options.rtspPort !== undefined) {
       const rtspPort = normalizePort(options.rtspPort)
-      sdkOptions.iPort = rtspPort
       sdkOptions.iRtspPort = rtspPort
     }
     if (options.webSocketPort !== undefined)
       sdkOptions.iWSPort = normalizePort(options.webSocketPort)
     if (options.useProxy !== undefined)
       sdkOptions.bProxy = options.useProxy
-    if (options.transcode) {
-      sdkOptions.oTransCodeParam = {
-        TransFrameRate: options.transcode.frameRate,
-        TransResolution: options.transcode.resolution,
-        TransBitrate: options.transcode.bitrate,
-      }
-    }
-
     await callWithCallback<unknown>(this.#sdk, 'I_StartPlayback', deviceId, sdkOptions)
     this.#emitter.emit('playback:started', {
       deviceId,
-      channel: options.channel,
+      channel,
       windowIndex,
       startTime: options.startTime,
       endTime: options.endTime,
@@ -584,45 +621,50 @@ export class HikPlayer {
   /** 暂停回放。 */
   async pause(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
+    const target = this.#playingWindowIndex(windowIndex)
     await callWithCallback<unknown>(this.#sdk, 'I_Pause', {
-      iWndIndex: windowIndex ?? this.#activeWindow,
+      iWndIndex: target,
     })
   }
 
   /** 从暂停 / 单帧恢复正常回放。 */
   async resume(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
+    const target = this.#playingWindowIndex(windowIndex)
     await callWithCallback<unknown>(this.#sdk, 'I_Resume', {
-      iWndIndex: windowIndex ?? this.#activeWindow,
+      iWndIndex: target,
     })
   }
 
   /** 加速回放（每次提升一档）。 */
   async playFast(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
+    const target = this.#playingWindowIndex(windowIndex)
     await callWithCallback<unknown>(this.#sdk, 'I_PlayFast', {
-      iWndIndex: windowIndex ?? this.#activeWindow,
+      iWndIndex: target,
     })
   }
 
   /** 减速回放（每次降低一档）。 */
   async playSlow(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
+    const target = this.#playingWindowIndex(windowIndex)
     await callWithCallback<unknown>(this.#sdk, 'I_PlaySlow', {
-      iWndIndex: windowIndex ?? this.#activeWindow,
+      iWndIndex: target,
     })
   }
 
   /** 当前窗口的 OSD 时间，格式 `yyyy-MM-dd HH:mm:ss`。 */
   async getOsdTime(windowIndex?: number): Promise<string> {
     this.#ensureInitialized()
+    const target = this.#playingWindowIndex(windowIndex)
     const raw = await callWithCallback<unknown>(this.#sdk, 'I_GetOSDTime', {
-      iWndIndex: windowIndex ?? this.#activeWindow,
+      iWndIndex: target,
     })
     if (typeof raw === 'string')
       return raw
     if (raw instanceof Date)
-      return currentTimestamp()
+      return formatDate(raw)
     return String(raw ?? '')
   }
 
@@ -631,33 +673,33 @@ export class HikPlayer {
   /** 打开声音。 */
   async openSound(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    await callPromise<void>(this.#sdk, 'I_OpenSound', windowIndex ?? this.#activeWindow)
+    await callPromise<void>(this.#sdk, 'I_OpenSound', this.#playingWindowIndex(windowIndex))
   }
 
   /** 关闭声音。 */
   async closeSound(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    await callPromise<void>(this.#sdk, 'I_CloseSound', windowIndex ?? this.#activeWindow)
+    await callPromise<void>(this.#sdk, 'I_CloseSound', this.#playingWindowIndex(windowIndex))
   }
 
   /** 设置音量（0-100）。 */
   async setVolume(volume: number, windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    if (!Number.isFinite(volume) || volume < 0 || volume > 100)
-      throw new HikError('INVALID_ARGUMENT', '音量取值范围应在 0 - 100 之间', { volume })
-    await callPromise<void>(this.#sdk, 'I_SetVolume', volume, windowIndex ?? this.#activeWindow)
+    if (!Number.isInteger(volume) || volume < 0 || volume > 100)
+      throw new HikError('INVALID_ARGUMENT', '音量必须是 0 - 100 的整数', { volume })
+    await callPromise<void>(this.#sdk, 'I_SetVolume', volume, this.#playingWindowIndex(windowIndex))
   }
 
   /** 启用电子放大。 */
   async enableEZoom(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    await callPromise<unknown>(this.#sdk, 'I_EnableEZoom', windowIndex ?? this.#activeWindow)
+    await callPromise<unknown>(this.#sdk, 'I_EnableEZoom', this.#playingWindowIndex(windowIndex))
   }
 
   /** 禁用电子放大。 */
   async disableEZoom(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    await callPromise<unknown>(this.#sdk, 'I_DisableEZoom', windowIndex ?? this.#activeWindow)
+    await callPromise<unknown>(this.#sdk, 'I_DisableEZoom', this.#playingWindowIndex(windowIndex))
   }
 
   /**
@@ -669,7 +711,7 @@ export class HikPlayer {
     await callPromise<unknown>(
       this.#sdk,
       'I_Enable3DZoom',
-      windowIndex ?? this.#activeWindow,
+      this.#playingWindowIndex(windowIndex),
       onZoomInfo,
     )
   }
@@ -677,7 +719,13 @@ export class HikPlayer {
   /** 禁用 3D 放大。 */
   async disable3DZoom(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    await callPromise<unknown>(this.#sdk, 'I_Disable3DZoom', windowIndex ?? this.#activeWindow)
+    const result = await callPromise<unknown>(this.#sdk, 'I_Disable3DZoom', this.#playingWindowIndex(windowIndex))
+    if (result === -1) {
+      throw new HikError('SDK_CALL_FAILED', '关闭 3D 放大失败', {
+        method: 'I_Disable3DZoom',
+        returnValue: result,
+      })
+    }
   }
 
   /** 设置该窗口的码流加密密钥。 */
@@ -688,7 +736,7 @@ export class HikPlayer {
       this.#sdk,
       'I_SetSecretKey',
       secretKey,
-      windowIndex ?? this.#activeWindow,
+      this.#windowIndex(windowIndex),
     )
   }
 
@@ -704,8 +752,9 @@ export class HikPlayer {
    */
   async capture(options: CaptureOptions = {}): Promise<string> {
     this.#ensureInitialized()
-    const windowIndex = options.windowIndex ?? this.#activeWindow
+    const windowIndex = this.#playingWindowIndex(options.windowIndex)
     const fileName = options.fileName ?? uniqueFileName('capture', 'jpg')
+    ensureNonEmpty(fileName, '抓拍文件名')
     const onData = options.onData
     let onDataTask: Promise<void> | undefined
 
@@ -737,11 +786,54 @@ export class HikPlayer {
     return fileName
   }
 
+  /** 直接从设备通道抓取 JPEG，无需先在播放窗口中预览。 */
+  async captureDevice(deviceId: string, options: DeviceCaptureOptions): Promise<string> {
+    this.#ensureInitialized()
+    this.#ensureDevice(deviceId)
+    const channel = ensurePositiveInteger(options.channel, '通道号')
+    const requestedFileName = options.fileName ?? uniqueFileName('device-capture', 'jpg')
+    ensureNonEmpty(requestedFileName, '抓拍文件名')
+    const baseFileName = requestedFileName.replace(/\.jpe?g$/i, '')
+    ensureNonEmpty(baseFileName, '抓拍文件名')
+    const fileName = `${baseFileName}.jpg`
+
+    const hasWidth = options.width !== undefined
+    const hasHeight = options.height !== undefined
+    if (hasWidth !== hasHeight)
+      throw new HikError('INVALID_ARGUMENT', '设备抓图宽度和高度必须同时传入')
+
+    const sdkOptions: Record<string, unknown> = {
+      bDateDir: options.byDateDirectory ?? true,
+    }
+    if (hasWidth && hasHeight) {
+      sdkOptions.iResolutionWidth = ensurePositiveInteger(options.width, '图片宽度')
+      sdkOptions.iResolutionHeight = ensurePositiveInteger(options.height, '图片高度')
+    }
+
+    const result = callSync<number>(
+      this.#sdk,
+      'I_DeviceCapturePic',
+      deviceId,
+      channel,
+      baseFileName,
+      sdkOptions,
+    )
+    if (result !== 0) {
+      throw new HikError('SDK_CALL_FAILED', '设备抓图失败', {
+        method: 'I_DeviceCapturePic',
+        returnValue: result,
+      })
+    }
+    this.#emitter.emit('device-capture:completed', { deviceId, channel, fileName })
+    return fileName
+  }
+
   /** 开始本地录像，保存到浏览器下载文件夹。 */
   async startRecording(options: RecordingOptions = {}): Promise<string> {
     this.#ensureInitialized()
-    const windowIndex = options.windowIndex ?? this.#activeWindow
+    const windowIndex = this.#playingWindowIndex(options.windowIndex)
     const fileName = options.fileName ?? uniqueFileName('record', 'mp4')
+    ensureNonEmpty(fileName, '录像文件名')
     await callWithCallback<unknown>(this.#sdk, 'I_StartRecord', fileName, {
       iWndIndex: windowIndex,
       bDateDir: options.byDateDirectory ?? true,
@@ -753,7 +845,7 @@ export class HikPlayer {
   /** 停止本地录像。 */
   async stopRecording(windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
-    const target = windowIndex ?? this.#activeWindow
+    const target = this.#playingWindowIndex(windowIndex)
     await callWithCallback<unknown>(this.#sdk, 'I_StopRecord', { iWndIndex: target })
     this.#emitter.emit('recording:stopped', { windowIndex: target })
   }
@@ -770,6 +862,23 @@ export class HikPlayer {
     if (!isValidTimeRange(options.startTime, options.endTime))
       throw new HikError('INVALID_ARGUMENT', `搜索时间区间无效：${options.startTime} ~ ${options.endTime}`)
 
+    const channel = ensurePositiveInteger(options.channel, '通道号')
+    const streamType = ensureIntegerInRange(options.streamType ?? 1, 1, 2, '录像码流类型')
+    if (options.page !== undefined && (!Number.isInteger(options.page) || options.page < 1))
+      throw new HikError('INVALID_ARGUMENT', '页码必须是大于等于 1 的整数', { page: options.page })
+    if (
+      options.searchPos !== undefined
+      && (!Number.isInteger(options.searchPos)
+        || options.searchPos < 0
+        || options.searchPos % RECORD_SEARCH_PAGE_SIZE !== 0)
+    ) {
+      throw new HikError(
+        'INVALID_ARGUMENT',
+        `搜索起点必须是大于等于 0 且为 ${RECORD_SEARCH_PAGE_SIZE} 的倍数`,
+        { searchPos: options.searchPos },
+      )
+    }
+
     const searchPos
       = options.searchPos !== undefined
         ? options.searchPos
@@ -779,11 +888,11 @@ export class HikPlayer {
       this.#sdk,
       'I_RecordSearch',
       deviceId,
-      options.channel,
+      channel,
       options.startTime,
       options.endTime,
       {
-        iStreamType: options.streamType ?? 1,
+        iStreamType: streamType,
         iSearchPos: searchPos,
       },
     )
@@ -812,7 +921,8 @@ export class HikPlayer {
         }
       })
       .filter((item): item is RecordMatch => item !== null)
-    return { matches, status, count: matches.length, raw: doc }
+    const count = Number.parseInt(xmlText(doc, 'numOfMatches', String(matches.length)), 10)
+    return { matches, status, count: Number.isFinite(count) ? count : matches.length, raw: doc }
   }
 
   /**
@@ -827,6 +937,8 @@ export class HikPlayer {
   ): Promise<unknown> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
+    ensureNonEmpty(playbackUri, '录像地址')
+    ensureNonEmpty(fileName, '下载文件名')
     return callPromise<unknown>(
       this.#sdk,
       'I_StartDownloadRecord',
@@ -845,6 +957,8 @@ export class HikPlayer {
   ): Promise<unknown> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
+    ensureNonEmpty(playbackUri, '录像地址')
+    ensureNonEmpty(options.fileName, '下载文件名')
     if (!isValidTimeRange(options.startTime, options.endTime))
       throw new HikError('INVALID_ARGUMENT', `下载时间区间无效：${options.startTime} ~ ${options.endTime}`)
     return callPromise<unknown>(
@@ -864,28 +978,34 @@ export class HikPlayer {
   /** 开始 PTZ 动作；松开按键时务必调用 `ptzStop()`，否则球机持续运动。 */
   async ptzStart(options: PtzControlOptions): Promise<void> {
     this.#ensureInitialized()
+    ensureIntegerInRange(options.action, 1, 15, 'PTZ 操作类型')
     await this.#ptzCommand(options, false)
   }
 
   /** 停止 PTZ 动作。 */
   async ptzStop(action: PtzControlOptions['action'], windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
+    ensureIntegerInRange(action, 1, 15, 'PTZ 操作类型')
     await this.#ptzCommand({ action, windowIndex }, true)
   }
 
   /** 保存预置位（先用 PTZ 调整画面，再调用此方法绑定到 ID）。 */
   async setPreset(presetId: number, windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
+    ensurePositiveInteger(presetId, '预置点 ID')
+    const target = this.#playingWindowIndex(windowIndex)
     await callWithCallback<unknown>(this.#sdk, 'I_SetPreset', presetId, {
-      iWndIndex: windowIndex ?? this.#activeWindow,
+      iWndIndex: target,
     })
   }
 
   /** 调用预置位。 */
   async goPreset(presetId: number, windowIndex?: number): Promise<void> {
     this.#ensureInitialized()
+    ensurePositiveInteger(presetId, '预置点 ID')
+    const target = this.#playingWindowIndex(windowIndex)
     await callWithCallback<unknown>(this.#sdk, 'I_GoPreset', presetId, {
-      iWndIndex: windowIndex ?? this.#activeWindow,
+      iWndIndex: target,
     })
   }
 
@@ -895,6 +1015,7 @@ export class HikPlayer {
   async exportDeviceConfig(deviceId: string, password: string): Promise<unknown> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
+    ensureNonEmpty(password, '导出密码')
     return callPromise<unknown>(this.#sdk, 'I_ExportDeviceConfig', deviceId, password)
   }
 
@@ -907,17 +1028,20 @@ export class HikPlayer {
   async importDeviceConfig(
     deviceId: string,
     fileName: string,
-    options: ImportDeviceConfigOptions = {},
+    options: ImportDeviceConfigOptions,
   ): Promise<unknown> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
+    ensureNonEmpty(fileName, '配置文件名')
+    if (!options?.file)
+      throw new HikError('INVALID_ARGUMENT', '无插件模式导入配置必须提供 File 句柄')
     return callPromise<unknown>(
       this.#sdk,
       'I_ImportDeviceConfig',
       deviceId,
       fileName,
       options.password,
-      options.file ?? undefined,
+      options.file,
     )
   }
 
@@ -946,11 +1070,14 @@ export class HikPlayer {
   async startUpgrade(
     deviceId: string,
     fileName: string,
-    options: StartUpgradeOptions = {},
+    options: StartUpgradeOptions,
   ): Promise<unknown> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
-    return callPromise<unknown>(this.#sdk, 'I2_StartUpgrade', deviceId, fileName, options.file ?? undefined)
+    ensureNonEmpty(fileName, '升级文件名')
+    if (!options?.file)
+      throw new HikError('INVALID_ARGUMENT', '无插件模式升级必须提供 File 句柄')
+    return callPromise<unknown>(this.#sdk, 'I2_StartUpgrade', deviceId, fileName, options.file)
   }
 
   /** 查询升级进度；不传 `deviceId` 时仅在单设备场景自动推断。 */
@@ -970,12 +1097,14 @@ export class HikPlayer {
   ): Promise<Document | null> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
+    ensureNonEmpty(uri, '请求 URI')
     const sdkOptions: SdkAjaxOptions & Record<string, unknown> = {
       type: options.method,
       data: options.body,
-      auth: options.auth,
       async: options.async,
     }
+    if (options.auth !== true && options.auth !== undefined)
+      sdkOptions.auth = options.auth
     const raw = await callWithCallback<unknown>(this.#sdk, 'I_SendHTTPRequest', deviceId, uri, sdkOptions)
     return ensureXmlDocument(raw)
   }
@@ -984,6 +1113,7 @@ export class HikPlayer {
   async getTextOverlay(deviceId: string, uri: string): Promise<Document | null> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
+    ensureNonEmpty(uri, '叠加信息 URI')
     const raw = await callWithCallback<unknown>(this.#sdk, 'I_GetTextOverlay', uri, deviceId, {})
     return ensureXmlDocument(raw)
   }
@@ -991,6 +1121,7 @@ export class HikPlayer {
   /** 打开系统文件 / 文件夹对话框；`szFileName === '-1'` 表示用户取消。 */
   async openFileDialog(type: 0 | 1): Promise<OpenFileDialogResult> {
     this.#ensureInitialized()
+    ensureIntegerInRange(type, 0, 1, '文件对话框类型')
     return callPromise<OpenFileDialogResult>(this.#sdk, 'I2_OpenFileDlg', type)
   }
 
@@ -1006,6 +1137,28 @@ export class HikPlayer {
       throw new HikError('DEVICE_NOT_FOUND', `设备未登录或已登出：${deviceId}`)
   }
 
+  #windowIndex(windowIndex: number | undefined): number {
+    const target = windowIndex ?? this.#activeWindow
+    if (!Number.isInteger(target) || target < 0 || target > 15) {
+      throw new HikError('INVALID_ARGUMENT', '窗口索引必须是 0 - 15 的整数', {
+        windowIndex: target,
+      })
+    }
+    return target
+  }
+
+  #playingWindowIndex(windowIndex: number | undefined): number {
+    const target = this.#windowIndex(windowIndex)
+    if (!this.getWindowStatus(target))
+      throw new HikError('WINDOW_NOT_PLAYING', `窗口 ${target} 未在播放`)
+    return target
+  }
+
+  async #stopWindowIfPlaying(windowIndex: number): Promise<void> {
+    if (this.getWindowStatus(windowIndex))
+      await this.stop(windowIndex)
+  }
+
   #resolveDeviceId(deviceId: string | undefined): string {
     if (deviceId) {
       this.#ensureDevice(deviceId)
@@ -1016,24 +1169,19 @@ export class HikPlayer {
     throw new HikError('INVALID_ARGUMENT', '请指定 deviceId')
   }
 
-  /** 安全获取并解析 XML；失败返回 null，便于聚合查询时降级。 */
+  /** 获取并解析 SDK XML 响应。 */
   async #fetchXml(method: string, deviceId: string): Promise<Document | null> {
     this.#ensureInitialized()
     this.#ensureDevice(deviceId)
-    try {
-      const raw = await callWithCallback<unknown>(this.#sdk, method, deviceId, {})
-      return ensureXmlDocument(raw)
-    }
-    catch (err) {
-      console.warn(`[hikvideoctrl] ${method} 调用失败`, err)
-      return null
-    }
+    const raw = await callWithCallback<unknown>(this.#sdk, method, deviceId, {})
+    return ensureXmlDocument(raw)
   }
 
   async #ptzCommand(options: PtzControlOptions, stop: boolean): Promise<void> {
     const speed = clampPtzSpeed(options.speed)
+    const windowIndex = this.#playingWindowIndex(options.windowIndex)
     await callWithCallback<unknown>(this.#sdk, 'I_PTZControl', options.action, stop, {
-      iWndIndex: options.windowIndex ?? this.#activeWindow,
+      iWndIndex: windowIndex,
       iPTZSpeed: speed,
     })
   }
@@ -1094,6 +1242,36 @@ function clampPtzSpeed(speed: number | undefined): number {
     )
   }
   return value
+}
+
+function ensureLayout(layout: number): void {
+  ensureIntegerInRange(layout, 1, 4, '分屏布局')
+}
+
+function ensureIntegerInRange(
+  value: unknown,
+  min: number,
+  max: number,
+  label: string,
+): number {
+  if (!Number.isInteger(value) || (value as number) < min || (value as number) > max) {
+    throw new HikError('INVALID_ARGUMENT', `${label}必须是 ${min} - ${max} 的整数`, {
+      received: value,
+    })
+  }
+  return value as number
+}
+
+function ensurePositiveInteger(value: unknown, label: string): number {
+  if (!Number.isInteger(value) || (value as number) < 1) {
+    throw new HikError('INVALID_ARGUMENT', `${label}必须是正整数`, { received: value })
+  }
+  return value as number
+}
+
+function ensureNonEmpty(value: string, label: string): void {
+  if (!value.trim())
+    throw new HikError('INVALID_ARGUMENT', `${label}不能为空`)
 }
 
 function toPublicWindow(raw: SdkWindowInfo): PublicWindowStatus {

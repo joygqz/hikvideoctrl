@@ -6,6 +6,7 @@
  * - `SDK_CALL_FAILED`       SDK 回调 `error` 或抛异常；详情见 `details.status / responseXml`
  * - `NOT_INITIALIZED`       未调用 `init()` 就操作播放器
  * - `ALREADY_INITIALIZED`   已初始化的播放器被重复初始化
+ * - `INITIALIZATION_TIMEOUT` 底层播放组件未在指定时间内完成初始化
  * - `INVALID_ARGUMENT`      参数校验失败（如端口越界、时间区间反转）
  * - `DEVICE_NOT_FOUND`      未登录或已登出的设备被引用
  * - `WINDOW_NOT_PLAYING`    对未播放窗口执行 `stop / pause`
@@ -17,6 +18,7 @@ export type HikErrorCode
     | 'SDK_CALL_FAILED'
     | 'NOT_INITIALIZED'
     | 'ALREADY_INITIALIZED'
+    | 'INITIALIZATION_TIMEOUT'
     | 'INVALID_ARGUMENT'
     | 'DEVICE_NOT_FOUND'
     | 'WINDOW_NOT_PLAYING'

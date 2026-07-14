@@ -30,7 +30,10 @@ export interface WebVideoCtrlSDK {
   I_ChangeWndNum: (layout: number) => Promise<void>
 
   /** 查询窗口状态；未播放或越界返回 null。 */
-  I_GetWindowStatus: (windowIndex?: number) => SdkWindowInfo | null
+  I_GetWindowStatus: {
+    (): SdkWindowInfo[]
+    (windowIndex: number): SdkWindowInfo | null
+  }
 
   /** 获取全部窗口集合。 */
   I_GetWndSet: () => SdkWindowInfo[]
@@ -43,7 +46,7 @@ export interface WebVideoCtrlSDK {
     username: string,
     password: string,
     options: SdkAjaxOptions,
-  ) => number
+  ) => number | void
   I_Logout: (deviceIdentify: string) => number
   I_GetDeviceInfo: (deviceIdentify: string, options: SdkAjaxOptions) => void
   I_GetDevicePort: (deviceIdentify: string) => SdkDevicePort | null
@@ -51,6 +54,7 @@ export interface WebVideoCtrlSDK {
   I_GetDigitalChannelInfo: (deviceIdentify: string, options: SdkAjaxOptions) => void
   I_GetZeroChannelInfo: (deviceIdentify: string, options: SdkAjaxOptions) => void
   I_GetAudioInfo: (deviceIdentify: string, options: SdkAjaxOptions) => void
+  I_GetSecurityVersion: (deviceIdentify: string, options: SdkAjaxOptions) => void
   I_RecordSearch: (
     deviceIdentify: string,
     channelId: number,
@@ -77,13 +81,23 @@ export interface WebVideoCtrlSDK {
   I_EnableEZoom: (windowIndex?: number) => Promise<unknown>
   I_DisableEZoom: (windowIndex?: number) => Promise<unknown>
   I_Enable3DZoom: (windowIndex?: number, callback?: (info: unknown) => void) => Promise<unknown>
-  I_Disable3DZoom: (windowIndex?: number) => Promise<unknown>
+  I_Disable3DZoom: (windowIndex?: number) => number
 
   // ─── 抓拍 / 录像 ───
   I2_CapturePic: (
     fileName: string,
     options: { iWndIndex?: number, cbCallback?: (data: Uint8Array) => void },
   ) => PromiseLike<unknown> | number
+  I_DeviceCapturePic: (
+    deviceIdentify: string,
+    channelId: number,
+    fileName: string,
+    options: {
+      bDateDir?: boolean
+      iResolutionWidth?: number
+      iResolutionHeight?: number
+    },
+  ) => number
   I_StartRecord: (
     fileName: string,
     options: SdkAjaxOptions & { iWndIndex?: number, bDateDir?: boolean },
@@ -131,6 +145,9 @@ export interface WebVideoCtrlSDK {
   I2_StartUpgrade: (deviceIdentify: string, fileName: string, file?: File) => Promise<unknown>
   I_UpgradeProgress: (deviceIdentify: string) => Promise<{ percent: number, upgrading: boolean }>
 
+  /** 无插件模式固定返回 `0`；保留用于与官方 SDK 完整对照。 */
+  I_CheckPluginVersion: () => number
+
   // ─── 透传 ───
   I_SendHTTPRequest: (
     deviceIdentify: string,
@@ -142,7 +159,7 @@ export interface WebVideoCtrlSDK {
     deviceIdentify: string,
     options: SdkAjaxOptions,
   ) => void
-  I2_OpenFileDlg: (type: 0 | 1) => Promise<{ szFileName: string, file: File | null }>
+  I2_OpenFileDlg: (type: 0 | 1) => Promise<{ szFileName: string | -1, file: File | null }>
 
   /** 未列出的 `I_*` 方法仍可通过索引签名调用。 */
   [method: string]: unknown
@@ -219,7 +236,7 @@ export function callSync<T>(sdk: WebVideoCtrlSDK, method: string, ...args: unkno
 
 /**
  * Promise 风格调用：SDK 方法本身返回 Promise / thenable。
- * 同步异常与 Promise reject 均收敛为 `HikError`；非 thenable 直接 resolve。
+ * 同步异常、Promise reject 与同步返回 `-1` 均收敛为 `HikError`；其它非 thenable 直接 resolve。
  */
 export function callPromise<T>(sdk: WebVideoCtrlSDK, method: string, ...args: unknown[]): Promise<T> {
   const fn = resolveMethod(sdk, method)
@@ -229,6 +246,12 @@ export function callPromise<T>(sdk: WebVideoCtrlSDK, method: string, ...args: un
   }
   catch (error) {
     return Promise.reject(new HikError('SDK_CALL_FAILED', `调用 ${method} 失败`, { method }, error))
+  }
+  if (raw === -1) {
+    return Promise.reject(new HikError('SDK_CALL_FAILED', `${method} 同步返回 -1`, {
+      method,
+      returnValue: raw,
+    }))
   }
   if (!isThenable(raw))
     return Promise.resolve(raw as T)
@@ -358,6 +381,11 @@ export function loadWebVideoCtrl(
 
   const timeout = options.timeout ?? 15_000
   const strategy = options.strategy ?? 'reuse'
+  if (!Number.isFinite(timeout) || timeout <= 0) {
+    return Promise.reject(
+      new HikError('INVALID_ARGUMENT', '脚本加载超时时间必须为正数', { timeout }),
+    )
+  }
 
   return new Promise<WebVideoCtrlSDK>((resolve, reject) => {
     const cleanupTimer = window.setTimeout(() => {
@@ -379,7 +407,8 @@ export function loadWebVideoCtrl(
     }
 
     if (strategy === 'reuse') {
-      const reused = document.querySelector<HTMLScriptElement>(`script[src="${scriptUrl}"]`)
+      const absoluteUrl = new URL(scriptUrl, document.baseURI).href
+      const reused = Array.from(document.scripts).find(script => script.src === absoluteUrl)
       if (reused) {
         reused.addEventListener('load', onReady, { once: true })
         reused.addEventListener('error', onFail, { once: true })

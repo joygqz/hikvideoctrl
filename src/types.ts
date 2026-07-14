@@ -1,5 +1,4 @@
 import type {
-  FileDialogType,
   Layout,
   PluginEventCode,
   ProtocolScheme,
@@ -43,6 +42,8 @@ export interface PluginInitOptions {
   colorProperty?: string
   /** 打开 SDK 调试日志（对应 `bDebugMode`）。 */
   debugMode?: boolean
+  /** 等待底层播放组件完成初始化的毫秒数，默认 `15000`。 */
+  timeout?: number
   /** 窗口选中回调（推荐改用 `on('window:selected')`）。 */
   onWindowSelect?: (windowIndex: number) => void
   /** 窗口双击 / 全屏回调（推荐改用 `on('window:dblclick')`）。 */
@@ -190,7 +191,10 @@ export interface PreviewOptions {
   useProxy?: boolean
 }
 
-/** 转码回放参数（对应 `oTransCodeParam`）。 */
+/**
+ * 官方文档中的转码回放参数（对应 `oTransCodeParam`）。
+ * V3.4.0 无插件实现会拒绝该参数，仅保留此类型供底层兼容场景使用。
+ */
 export interface PlaybackTranscode {
   /** 帧率档位，取值见 `TRANSCODE_FRAME_RATE`。 */
   frameRate?: TranscodeFrameRate
@@ -200,13 +204,13 @@ export interface PlaybackTranscode {
   bitrate?: TranscodeBitrate
 }
 
-export interface PlaybackOptions extends Omit<PreviewOptions, 'zeroChannel'> {
+export interface PlaybackOptions extends Omit<PreviewOptions, 'streamType' | 'zeroChannel'> {
+  /** 回放仅支持主码流或子码流。 */
+  streamType?: Exclude<StreamType, 3>
   /** `yyyy-MM-dd HH:mm:ss` 格式。 */
   startTime: string
   /** `yyyy-MM-dd HH:mm:ss` 格式。 */
   endTime: string
-  /** 转码参数；设备不支持时勿传。 */
-  transcode?: PlaybackTranscode
 }
 
 // ─────────────────────────── PTZ ───────────────────────────
@@ -227,7 +231,8 @@ export interface RecordSearchOptions {
   startTime: string
   /** `yyyy-MM-dd HH:mm:ss` 格式。 */
   endTime: string
-  streamType?: StreamType
+  /** 录像搜索仅支持主码流或子码流。 */
+  streamType?: Exclude<StreamType, 3>
   /** 搜索起点（必须为 40 的倍数）；优先级高于 `page`。 */
   searchPos?: number
   /** 1 基页码，自动换算为 `(page-1) * 40`，默认 1。 */
@@ -250,6 +255,20 @@ export interface CaptureOptions {
   onData?: (data: Uint8Array) => void | Promise<void>
 }
 
+/** 设备端抓图参数（无需先在窗口中预览）。 */
+export interface DeviceCaptureOptions {
+  /** 设备通道号。 */
+  channel: number
+  /** 保存文件名；SDK 固定保存为 JPEG。 */
+  fileName?: string
+  /** 请求的图片宽度，必须与 `height` 同时传入。 */
+  width?: number
+  /** 请求的图片高度，必须与 `width` 同时传入。 */
+  height?: number
+  /** 按日期建立子目录，默认 `true`。 */
+  byDateDirectory?: boolean
+}
+
 export interface DownloadOptions {
   /** 按日期建立子目录，默认 true。 */
   byDateDirectory?: boolean
@@ -270,13 +289,13 @@ export interface RestoreDefaultOptions {
 export interface ImportDeviceConfigOptions {
   /** 导入密码；未加密配置可不传。 */
   password?: string
-  /** `openFileDialog(FILE_DIALOG.File)` 返回的 File 句柄。 */
-  file?: File | null
+  /** `openFileDialog(FILE_DIALOG.File)` 返回的 File 句柄（无插件模式必填）。 */
+  file: File
 }
 
 export interface StartUpgradeOptions {
-  /** `openFileDialog(FILE_DIALOG.File)` 返回的 File 句柄。 */
-  file?: File | null
+  /** `openFileDialog(FILE_DIALOG.File)` 返回的 File 句柄（无插件模式必填）。 */
+  file: File
 }
 
 // ─────────────────────────── 透传 HTTP ───────────────────────────
@@ -296,7 +315,7 @@ export interface HttpRequestOptions {
 
 export interface OpenFileDialogResult {
   /** 用户选择的文件名；`-1` 表示取消（保留 SDK 原始语义）。 */
-  szFileName: string
+  szFileName: string | -1
   /** 实际文件句柄；选择文件夹时可能为 null。 */
   file: File | null
 }
@@ -341,7 +360,8 @@ export interface HikPlayerEventMap {
   'playback:stopped': { deviceId: string, windowIndex: number }
   'recording:started': { fileName: string, windowIndex: number }
   'recording:stopped': { windowIndex: number }
-  'capture:completed': { fileName: string, windowIndex: number, asFile: FileDialogType | boolean }
+  'capture:completed': { fileName: string, windowIndex: number, asFile: boolean }
+  'device-capture:completed': { deviceId: string, channel: number, fileName: string }
 }
 
 declare global {

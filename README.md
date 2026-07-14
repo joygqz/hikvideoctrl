@@ -351,6 +351,10 @@ export function CameraPanel() {
 
 检测当前实例所使用的底层 SDK 是否支持无插件模式。
 
+#### `player.checkPluginVersion(): number`
+
+调用官方版本检查接口；无插件模式固定返回 `0`。
+
 ### 生命周期
 
 #### `player.init(options: PluginInitOptions): Promise<void>`
@@ -362,9 +366,10 @@ export function CameraPanel() {
 | `container` | `string \| HTMLElement` | 是 | 无 | 容器 id、`#id` 或 DOM 元素 |
 | `width` | `number \| string` | 否 | 容器宽度/800 | 宽度，支持数字、`px`、`%` |
 | `height` | `number \| string` | 否 | 容器高度/600 | 高度，支持数字、`px`、`%` |
-| `layout` | [`Layout`](#layout) \| `number` | 否 | `1` | 初始分屏，`1/2/3/4` 对应 `1×1/2×2/3×3/4×4`；大于 `4` 一律按 `4×4` 处理 |
+| `layout` | [`Layout`](#layout) \| `number` | 否 | `1` | 初始分屏，`1/2/3/4` 对应 `1×1/2×2/3×3/4×4` |
 | `colorProperty` | `string` | 否 | 底层默认 | 窗口背景和边框颜色配置串 |
 | `debugMode` | `boolean` | 否 | `false` | 是否输出底层调试日志 |
+| `timeout` | `number` | 否 | `15000` | 等待底层播放组件完成初始化的毫秒数 |
 | `onWindowSelect` | `(windowIndex: number) => void` | 否 | 无 | 窗口选中回调 |
 | `onWindowDoubleClick` | `(windowIndex: number, fullScreen: boolean) => void` | 否 | 无 | 窗口双击回调 |
 | `onEvent` | `(eventType:` [`PluginEventCode`](#plugineventcode) `\| number, windowIndex: number, param2: number) => void` | 否 | 无 | 播放异常类事件回调 |
@@ -447,6 +452,7 @@ export function CameraPanel() {
 | `player.listDevices()` | 无 | `DeviceSession[]` | 获取已登录设备列表 |
 | `player.getDevice(deviceId)` | `deviceId: string` | `DeviceSession \| undefined` | 获取单个设备会话 |
 | `player.getDeviceInfo(deviceId)` | `deviceId: string` | `Promise<DeviceInfo \| null>` | 获取设备信息 |
+| `player.getSecurityVersion(deviceId)` | `deviceId: string` | `Promise<Document \| null>` | 获取设备安全能力版本 XML |
 | `player.getDevicePort(deviceId)` | `deviceId: string` | `DevicePort` | 获取设备端口 |
 | `player.getAnalogChannels(deviceId)` | `deviceId: string` | `Promise<ChannelInfo[]>` | 获取模拟通道 |
 | `player.getDigitalChannels(deviceId)` | `deviceId: string` | `Promise<ChannelInfo[]>` | 获取数字通道 |
@@ -494,15 +500,8 @@ export function CameraPanel() {
 | `rtspPort` | `number` | 否 | 自动识别 | RTSP 端口 |
 | `webSocketPort` | `number` | 否 | 自动识别 | WebSocket 取流端口 |
 | `useProxy` | `boolean` | 否 | `false` | 是否通过 WebSocket 代理取流；HTTPS 部署及部分设备需置 `true` |
-| `transcode` | `PlaybackTranscode` | 否 | 无 | 转码参数，见下表 |
 
-`PlaybackTranscode`：
-
-| 字段 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `frameRate` | [`TranscodeFrameRate`](#transcodeframerate) | 否 | 无 | 转码帧率档位 |
-| `resolution` | [`TranscodeResolution`](#transcoderesolution) | 否 | 无 | 转码分辨率档位 |
-| `bitrate` | [`TranscodeBitrate`](#transcodebitrate) | 否 | 无 | 转码码率档位 |
+V3.4.0 的无插件实现会拒绝 `oTransCodeParam`，因此高级回放 API 不提供转码参数。
 
 #### 回放操作方法
 
@@ -520,10 +519,10 @@ export function CameraPanel() {
 
 | 方法 | 参数 | 返回值 | 说明 |
 | --- | --- | --- | --- |
-| `player.changeLayout(layout)` | `layout:` [`Layout`](#layout) `\| number` | `Promise<void>` | 切换布局（`1/2/3/4` 对应 `1×1/2×2/3×3/4×4`，超过 `4` 按 `4×4` 处理） |
-| `player.fullScreen(enable?)` | `enable?: boolean` | `Promise<void>` | 进入全屏播放（无插件模式下底层固定进入全屏，参数仅占位；退出请用 Esc 键） |
+| `player.changeLayout(layout)` | `layout:` [`Layout`](#layout) `\| number` | `Promise<void>` | 切换布局（`1/2/3/4` 对应 `1×1/2×2/3×3/4×4`） |
+| `player.fullScreen(enable?)` | `enable?: boolean` | `Promise<void>` | 进入或退出全屏；也可按 Esc 退出 |
 | `player.getWindowStatus(windowIndex?)` | `windowIndex?: number` | `WindowStatus \| null` | 获取单个窗口状态 |
-| `player.getAllWindows()` | 无 | `WindowStatus[]` | 获取底层返回的窗口状态列表 |
+| `player.getAllWindows()` | 无 | `WindowStatus[]` | 获取全部正在播放的窗口状态 |
 
 ### 音量、缩放与加密
 
@@ -549,6 +548,18 @@ export function CameraPanel() {
 | `fileName` | `string` | 否 | 自动生成 | 抓拍文件名，`.bmp` 结尾时抓 BMP |
 | `windowIndex` | `number` | 否 | 当前窗口 | 抓拍窗口 |
 | `onData` | `(data: Uint8Array) => void \| Promise<void>` | 否 | 无 | 接收图片字节；传入后不触发浏览器下载 |
+
+#### `player.captureDevice(deviceId: string, options: DeviceCaptureOptions): Promise<string>`
+
+直接从设备通道抓取 JPEG，无需先开始窗口预览。
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `channel` | `number` | 是 | 无 | 设备通道号 |
+| `fileName` | `string` | 否 | 自动生成 | 保存文件名 |
+| `width` | `number` | 否 | 设备默认 | 图片宽度，须与 `height` 同时传入 |
+| `height` | `number` | 否 | 设备默认 | 图片高度，须与 `width` 同时传入 |
+| `byDateDirectory` | `boolean` | 否 | `true` | 是否按日期创建目录 |
 
 #### `player.startRecording(options?: RecordingOptions): Promise<string>`
 
@@ -626,22 +637,22 @@ export function CameraPanel() {
 | `player.reconnect(deviceId)` | `deviceId: string` | `Promise<void>` | 重新连接设备 |
 | `player.getUpgradeProgress(deviceId?)` | `deviceId?: string` | `Promise<{ percent: number, upgrading: boolean }>` | 查询升级进度 |
 
-#### `player.importDeviceConfig(deviceId: string, fileName: string, options?: ImportDeviceConfigOptions): Promise<unknown>`
+#### `player.importDeviceConfig(deviceId: string, fileName: string, options: ImportDeviceConfigOptions): Promise<unknown>`
 
 导入设备配置，`fileName` 取自 `openFileDialog()` 返回的 `szFileName`。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `password` | `string` | 否 | 无 | 配置文件密码 |
-| `file` | `File \| null` | 否 | 无 | `openFileDialog()` 返回的 `file` |
+| `file` | `File` | 是 | 无 | `openFileDialog()` 返回的 `file` |
 
-#### `player.startUpgrade(deviceId: string, fileName: string, options?: StartUpgradeOptions): Promise<unknown>`
+#### `player.startUpgrade(deviceId: string, fileName: string, options: StartUpgradeOptions): Promise<unknown>`
 
 开始固件升级，`fileName` 取自 `openFileDialog()` 返回的 `szFileName`。
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
-| `file` | `File \| null` | 否 | 无 | `openFileDialog()` 返回的 `file` |
+| `file` | `File` | 是 | 无 | `openFileDialog()` 返回的 `file` |
 
 ### 透传请求与文件选择
 
@@ -714,10 +725,10 @@ export function CameraPanel() {
 | `formatDate(date, pattern?)` | `date: Date`, `pattern?: string` | `string` | 格式化日期，默认 `yyyy-MM-dd HH:mm:ss` |
 | `currentTimestamp(pattern?)` | `pattern?: string` | `string` | 格式化当前时间 |
 | `todayTimeRange()` | 无 | `{ start: string, end: string }` | 当天起止时间 |
-| `isValidTimeRange(start, end)` | `start: string`, `end: string` | `boolean` | 判断时间范围是否可解析且结束时间不早于开始时间 |
+| `isValidTimeRange(start, end)` | `start: string`, `end: string` | `boolean` | 严格校验 SDK 时间格式且结束时间不早于开始时间 |
 | `isIPv4(value)` | `value: string` | `boolean` | 判断 IPv4 |
 | `isIPv6(value)` | `value: string` | `boolean` | 判断 IPv6 |
-| `isHostname(value)` | `value: string` | `boolean` | 判断域名 |
+| `isHostname(value)` | `value: string` | `boolean` | 判断 DNS 主机名（含局域网单标签名称） |
 | `isValidHost(host)` | `host: string` | `boolean` | 判断 IP、域名或 localhost |
 | `isValidPort(port)` | `port: number` | `boolean` | 判断端口是否在 `1-65535` |
 | `normalizePort(port)` | `port: number` | `number` | 规范化端口，非法时抛 `HikError` |
@@ -930,7 +941,7 @@ export function CameraPanel() {
 | `WindowStatus` | `index`、`deviceId`、`channelId`、`playStatus`（[`PlayStatus`](#playstatus)）、`raw` |
 | `RecordMatch` | `trackId`、`startTime`、`endTime`、`fileName`、`playbackUri`、`kind` |
 | `RecordSearchResult` | `matches`、`status`、`count`、`raw` |
-| `OpenFileDialogResult` | `szFileName`、`file` |
+| `OpenFileDialogResult` | `szFileName: string \| -1`、`file` |
 | `HikError` | `name`、`code`、`message`、`details`、`cause` |
 
 ## 事件
@@ -965,6 +976,7 @@ off() // 取消订阅
 | `recording:started` | `{ fileName, windowIndex }` | 本地录像开始 |
 | `recording:stopped` | `{ windowIndex }` | 本地录像停止 |
 | `capture:completed` | `{ fileName, windowIndex, asFile }` | 抓拍完成 |
+| `device-capture:completed` | `{ deviceId, channel, fileName }` | 设备端抓图完成 |
 
 运行时错误码可通过 `SDK_RUNTIME_ERROR` 转中文描述：
 
@@ -1013,6 +1025,7 @@ catch (err) {
 | `SCRIPT_LOAD_FAILED` | `loadWebVideoCtrl()` 加载失败或超时 |
 | `NOT_INITIALIZED` | 尚未调用 `init()` |
 | `ALREADY_INITIALIZED` | 重复调用 `init()` |
+| `INITIALIZATION_TIMEOUT` | 底层播放组件未在指定时间内完成初始化 |
 | `INVALID_ARGUMENT` | 参数非法，例如端口越界、时间范围错误 |
 | `DEVICE_NOT_FOUND` | 设备未登录或已登出 |
 | `WINDOW_NOT_PLAYING` | 对未播放窗口执行停止等操作 |

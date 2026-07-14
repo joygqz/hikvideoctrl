@@ -33,10 +33,9 @@ export function todayTimeRange(): { start: string, end: string } {
 
 /** 校验 `[start, end]` 区间合法。 */
 export function isValidTimeRange(start: string, end: string): boolean {
-  // `-` 替换为 `/` 以兼容 Safari 的 Date.parse
-  const s = Date.parse(start.replace(/-/g, '/'))
-  const e = Date.parse(end.replace(/-/g, '/'))
-  return Number.isFinite(s) && Number.isFinite(e) && e >= s
+  const s = parseSdkTime(start)
+  const e = parseSdkTime(end)
+  return s !== null && e !== null && e >= s
 }
 
 // ─────────────────────────── 地址校验 ───────────────────────────
@@ -46,14 +45,31 @@ export function isIPv4(value: string): boolean {
   return /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})$/.test(value)
 }
 
-/** 最小可用校验：含 `:` 且字符集为 IPv6 允许字符。 */
+/** 校验标准 IPv6（接受带方括号和 IPv4 映射地址）。 */
 export function isIPv6(value: string): boolean {
-  return value.includes(':') && /^[0-9a-f:]+$/i.test(value)
+  const host = value.startsWith('[') && value.endsWith(']') ? value.slice(1, -1) : value
+  if (!host.includes(':'))
+    return false
+  try {
+    const parsed = new URL(`http://[${host}]/`).hostname
+    return parsed.startsWith('[') && parsed.endsWith(']')
+  }
+  catch {
+    return false
+  }
 }
 
-/** 标准域名（含至少两级 TLD）。 */
+/** 标准 DNS 主机名；兼容局域网单标签名称与 punycode 域名。 */
 export function isHostname(value: string): boolean {
-  return /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(value)
+  if (!value || value.length > 253 || value.endsWith('.'))
+    return false
+  if (/^[\d.]+$/.test(value))
+    return false
+  return value.split('.').every(label => (
+    label.length >= 1
+    && label.length <= 63
+    && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(label)
+  ))
 }
 
 /** 主机地址综合校验（IPv4 / IPv6 / 域名 / `localhost`）。 */
@@ -70,14 +86,11 @@ export function isValidPort(port: number): boolean {
   return Number.isInteger(port) && port >= 1 && port <= 65535
 }
 
-/** 截断小数并校验端口范围，非法时抛 `INVALID_ARGUMENT`。 */
+/** 校验并返回端口，非法时抛 `INVALID_ARGUMENT`。 */
 export function normalizePort(port: number): number {
-  if (!Number.isFinite(port))
-    throw new HikError('INVALID_ARGUMENT', '端口号必须是有效数字', { received: port })
-  const value = Math.trunc(port)
-  if (!isValidPort(value))
+  if (!isValidPort(port))
     throw new HikError('INVALID_ARGUMENT', '端口号应在 1 - 65535 之间', { received: port })
-  return value
+  return port
 }
 
 // ─────────────────────────── 设备标识 ───────────────────────────
@@ -181,7 +194,8 @@ export function parseXml(xml: string | null | undefined): Document | null {
   if (typeof DOMParser === 'undefined')
     return null
   try {
-    return new DOMParser().parseFromString(xml, 'text/xml')
+    const doc = new DOMParser().parseFromString(xml, 'text/xml')
+    return doc.querySelector('parsererror') ? null : doc
   }
   catch {
     return null
@@ -199,13 +213,13 @@ export function parseXml(xml: string | null | undefined): Document | null {
 export function ensureXmlDocument(input: unknown): Document | null {
   if (!input)
     return null
-  if (typeof Document !== 'undefined' && input instanceof Document)
-    return input
+  if (isDocument(input))
+    return input as Document
   if (typeof input === 'string')
     return parseXml(input)
   const responseXML = (input as { responseXML?: unknown }).responseXML
-  if (responseXML && typeof Document !== 'undefined' && responseXML instanceof Document)
-    return responseXML
+  if (isDocument(responseXML))
+    return responseXML as Document
   const responseText = (input as { responseText?: unknown }).responseText
   if (typeof responseText === 'string')
     return parseXml(responseText)
@@ -251,4 +265,38 @@ export function randomId(): string {
 
 function pad2(value: number): string {
   return String(value).padStart(2, '0')
+}
+
+function parseSdkTime(value: string): number | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/.exec(value)
+  if (!match)
+    return null
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText] = match
+  const year = Number(yearText)
+  const month = Number(monthText)
+  const day = Number(dayText)
+  const hour = Number(hourText)
+  const minute = Number(minuteText)
+  const second = Number(secondText)
+  const date = new Date(year, month - 1, day, hour, minute, second, 0)
+  if (
+    date.getFullYear() !== year
+    || date.getMonth() !== month - 1
+    || date.getDate() !== day
+    || date.getHours() !== hour
+    || date.getMinutes() !== minute
+    || date.getSeconds() !== second
+  ) {
+    return null
+  }
+  return date.getTime()
+}
+
+function isDocument(value: unknown): value is Document {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && (value as { nodeType?: unknown }).nodeType === 9
+    && typeof (value as { querySelector?: unknown }).querySelector === 'function',
+  )
 }
